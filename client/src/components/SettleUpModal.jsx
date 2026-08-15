@@ -24,9 +24,12 @@ export const SettleUpModal = ({
 
   useEffect(() => {
     if (isOpen && members.length >= 2) {
-      setFromUserId(initialFromUser?._id || members[0]._id);
-      const defaultTo = members.find(m => m._id !== (initialFromUser?._id || members[0]._id));
-      setToUserId(initialToUser?._id || defaultTo?._id || members[1]._id);
+      const defaultFrom = initialFromUser?._id || members[0]._id;
+      setFromUserId(defaultFrom);
+      
+      const defaultTo = initialToUser?._id || members.find(m => m._id !== defaultFrom)?._id || members[1]._id;
+      setToUserId(defaultTo);
+      
       setAmount(initialAmount || '');
       setNote('');
       setError('');
@@ -54,6 +57,8 @@ export const SettleUpModal = ({
     try {
       setSubmitting(true);
       await api.post(`/groups/${groupId}/settlements`, {
+        fromUser: fromUserId,
+        toUser: toUserId,
         fromUserId,
         toUserId,
         amount: amtNum,
@@ -62,7 +67,7 @@ export const SettleUpModal = ({
 
       setSuccessMsg(true);
       setTimeout(() => {
-        onSettlementCreated();
+        if (onSettlementCreated) onSettlementCreated();
         onClose();
       }, 1200);
     } catch (err) {
@@ -129,7 +134,14 @@ export const SettleUpModal = ({
                 </label>
                 <select
                   value={fromUserId}
-                  onChange={(e) => setFromUserId(e.target.value)}
+                  onChange={(e) => {
+                    const newFrom = e.target.value;
+                    setFromUserId(newFrom);
+                    if (newFrom === toUserId) {
+                      const altTo = members.find(m => m._id !== newFrom)?._id;
+                      if (altTo) setToUserId(altTo);
+                    }
+                  }}
                   className="w-full bg-slate-50 border border-slate-200/80 px-4 py-2.5 rounded-2xl text-sm font-medium text-slate-900 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition-all"
                 >
                   {members.map(m => (

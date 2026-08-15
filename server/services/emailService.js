@@ -40,7 +40,7 @@ const sendInviteOtpEmail = async ({ email, name, groupName, otp }) => {
   const senderEmail = process.env.SMTP_USER || process.env.GMAIL_USER || process.env.EMAIL_USER || 'no-reply@equallysplit.com';
   
   console.log('\n==========================================');
-  console.log(`🔑 [OTP GENERATED FOR ${email}]`);
+  console.log(`🔑 [GROUP INVITE OTP GENERATED FOR ${email}]`);
   console.log(`👤 Name: ${name}`);
   console.log(`🏷️ Group: ${groupName}`);
   console.log(`✨ 6-DIGIT OTP CODE: [ ${otp} ]`);
@@ -74,12 +74,57 @@ const sendInviteOtpEmail = async ({ email, name, groupName, otp }) => {
       return { success: false, error: err.message };
     }
   } else {
-    console.warn(`⚠️ REAL EMAIL NOT SENT: Please set SMTP_USER and SMTP_PASS (or GMAIL_USER & GMAIL_PASS) in server/.env file.`);
+    console.warn(`⚠️ REAL EMAIL NOT SENT: Please set SMTP_USER and SMTP_PASS in server/.env file.`);
+    return { success: false, reason: 'NO_SMTP_CONFIG' };
+  }
+};
+
+/**
+ * Sends 6-digit Registration OTP Email for new user signups
+ */
+const sendRegisterOtpEmail = async ({ email, name, otp }) => {
+  const senderEmail = process.env.SMTP_USER || process.env.GMAIL_USER || process.env.EMAIL_USER || 'no-reply@equallysplit.com';
+  
+  console.log('\n==========================================');
+  console.log(`🔑 [REGISTER OTP GENERATED FOR ${email}]`);
+  console.log(`👤 Name: ${name}`);
+  console.log(`✨ 6-DIGIT OTP CODE: [ ${otp} ]`);
+  console.log('==========================================\n');
+
+  const transporter = createTransporter();
+  
+  if (transporter) {
+    try {
+      await transporter.sendMail({
+        from: `"${process.env.APP_NAME || 'Equally Split'}" <${senderEmail}>`,
+        to: email,
+        subject: `Your 6-Digit Registration OTP Code - Equally Split`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff;">
+            <h2 style="color: #4f46e5; margin-top: 0;">Equally Split Registration Verification</h2>
+            <p>Hi <strong>${name}</strong>,</p>
+            <p>Welcome to Equally Split! Please use the 6-digit One-Time Password (OTP) below to verify your email address and activate your account:</p>
+            <div style="background-color: #f3f4f6; padding: 18px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #4f46e5; border-radius: 12px; margin: 20px 0; border: 1px solid #e5e7eb;">
+              ${otp}
+            </div>
+            <p style="font-size: 12px; color: #6b7280;">This OTP code is valid for 10 minutes. If you did not request this registration, please ignore this email.</p>
+          </div>
+        `
+      });
+      console.log(`✉️ SUCCESS: Registration Real Email OTP sent to ${email}`);
+      return { success: true };
+    } catch (err) {
+      console.error('❌ Nodemailer Error sending registration email:', err.message);
+      return { success: false, error: err.message };
+    }
+  } else {
+    console.warn(`⚠️ REAL EMAIL NOT SENT: Please set SMTP_USER and SMTP_PASS in server/.env file.`);
     return { success: false, reason: 'NO_SMTP_CONFIG' };
   }
 };
 
 module.exports = {
   generate6DigitOtp,
-  sendInviteOtpEmail
+  sendInviteOtpEmail,
+  sendRegisterOtpEmail
 };

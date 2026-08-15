@@ -12,16 +12,23 @@ const { simplifyBalances } = require('../services/balanceSimplificationService')
 const createSettlement = async (req, res) => {
   try {
     const { groupId } = req.params;
-    const { fromUser, toUser, amount, date, note } = req.body;
+    const { fromUser, toUser, fromUserId, toUserId, amount, date, note } = req.body;
 
     const group = await Group.findById(groupId);
     if (!group) {
       return res.status(404).json({ message: 'Group not found' });
     }
 
+    const actualFromUser = fromUser || fromUserId || req.user._id;
+    const actualToUser = toUser || toUserId;
+
+    if (!actualToUser) {
+      return res.status(400).json({ message: 'Recipient is required for settlement' });
+    }
+
     const validated = validateSettlement({
-      fromUser: fromUser || req.user._id,
-      toUser,
+      fromUser: actualFromUser,
+      toUser: actualToUser,
       amount: Number(amount),
       memberIds: group.members
     });
