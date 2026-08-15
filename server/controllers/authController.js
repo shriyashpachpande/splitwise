@@ -18,8 +18,30 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Please provide name, email, and password' });
     }
 
-    const userExists = await User.findOne({ email: email.toLowerCase() });
+    const cleanEmail = email.toLowerCase().trim();
+
+    let userExists = await User.findOne({ email: cleanEmail }).select('+password');
     if (userExists) {
+      // Check if user was auto-created via OTP / Guest invite (has default password)
+      const isAutoUser = await bcrypt.compare('otpauthuser123', userExists.password) ||
+                         await bcrypt.compare('guestpassword123', userExists.password);
+      
+      if (isAutoUser) {
+        const salt = await bcrypt.genSalt(10);
+        userExists.password = await bcrypt.hash(password, salt);
+        userExists.name = name || userExists.name;
+        if (avatar) userExists.avatar = avatar;
+        await userExists.save();
+
+        return res.status(200).json({
+          _id: userExists._id,
+          name: userExists.name,
+          email: userExists.email,
+          avatar: userExists.avatar,
+          token: generateToken(userExists._id)
+        });
+      }
+
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
@@ -28,7 +50,7 @@ const registerUser = async (req, res) => {
 
     const user = await User.create({
       name,
-      email: email.toLowerCase(),
+      email: cleanEmail,
       password: hashedPassword,
       avatar: avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`
     });
@@ -56,7 +78,7 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
