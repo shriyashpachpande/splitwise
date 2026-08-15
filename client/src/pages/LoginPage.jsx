@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Wallet, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { Wallet, Mail, Lock, ArrowRight } from 'lucide-react';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -22,19 +22,6 @@ export const LoginPage = () => {
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid email or password');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async (demoEmail) => {
-    try {
-      setLoading(true);
-      setError('');
-      await login(demoEmail, 'password123');
-      navigate('/dashboard');
-    } catch (err) {
-      setError('Demo login failed. Make sure server is running.');
     } finally {
       setLoading(false);
     }
@@ -71,7 +58,7 @@ export const LoginPage = () => {
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
               <input
                 type="email"
-                placeholder="yash@example.com"
+                placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full saas-input pl-10 pr-4 py-2.5 rounded-xl text-sm"
@@ -107,30 +94,7 @@ export const LoginPage = () => {
           </button>
         </form>
 
-        {/* Demo Accounts Quick Login */}
-        <div className="pt-4 border-t border-slate-100">
-          <p className="text-[11px] uppercase font-semibold text-slate-400 tracking-wider text-center mb-2 flex items-center justify-center space-x-1">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-            <span>Quick Demo Accounts</span>
-          </p>
-
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => handleDemoLogin('yash@example.com')}
-              className="px-3 py-2 bg-slate-50 hover:bg-slate-100 text-indigo-600 border border-slate-200 rounded-xl text-xs font-semibold truncate transition-colors"
-            >
-              Yash (Payer)
-            </button>
-            <button
-              onClick={() => handleDemoLogin('madhav@example.com')}
-              className="px-3 py-2 bg-slate-50 hover:bg-slate-100 text-indigo-600 border border-slate-200 rounded-xl text-xs font-semibold truncate transition-colors"
-            >
-              Madhav (Debtor)
-            </button>
-          </div>
-        </div>
-
-        <div className="text-center text-xs text-slate-500 pt-1">
+        <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-100">
           Don't have an account?{' '}
           <Link to="/register" className="text-indigo-600 font-bold hover:underline">
             Register here
