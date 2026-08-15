@@ -1,0 +1,16 @@
+{
+  "name": "equally-split",
+  "version": "1.0.0",
+  "description": "Equally Split - Premium Expense Sharing & Group Debt Settlement App",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "server": "cd server && npm start",
+    "client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
