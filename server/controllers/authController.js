@@ -3,7 +3,11 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Otp = require('../models/Otp');
 const SecurityLog = require('../models/SecurityLog');
-const { generate6DigitOtp, sendRegisterOtpEmail } = require('../services/emailService');
+const {
+  generate6DigitOtp,
+  sendRegisterOtpEmail,
+  sendForgotPasswordOtpEmail
+} = require('../services/emailService');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret_key_12345', {
@@ -76,8 +80,7 @@ const sendRegisterOtp = async (req, res) => {
     });
 
     res.json({
-      message: `6-Digit verification OTP code has been sent to ${cleanEmail}`,
-      devOtp: otp
+      message: `6-Digit verification OTP code has been sent to ${cleanEmail}`
     });
   } catch (error) {
     console.error('Send register OTP error:', error);
@@ -147,6 +150,141 @@ const registerUser = async (req, res) => {
   }
 };
 
+// @desc    Step 1: Send Forgot Password OTP to user's email via Nodemailer
+// @route   POST /api/auth/send-forgot-password-otp
+const sendForgotPasswordOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email address is required' });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail });
+
+    if (!user) {
+      return res.status(404).json({ message: 'No account found registered with this email address' });
+    }
+
+    const otp = generate6DigitOtp();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+    await Otp.deleteMany({ email: cleanEmail, inviteCode: 'FORGOT_PASSWORD' });
+    await Otp.create({
+      email: cleanEmail,
+      name: user.name,
+      otp,
+      inviteCode: 'FORGOT_PASSWORD',
+      expiresAt
+    });
+
+    await sendForgotPasswordOtpEmail({
+      email: cleanEmail,
+      name: user.name,
+      otp
+    });
+
+    res.json({
+      message: `6-Digit OTP code has been sent to ${cleanEmail}. Please check your email inbox.`
+    });
+  } catch (error) {
+    console.error('Send forgot password OTP error:', error);
+    res.status(500).json({ message: 'Server error sending password reset OTP' });
+  }
+};
+
+// @desc    Step 2: Verify 6-digit OTP code entered by user
+// @route   POST /api/auth/verify-forgot-password-otp
+const verifyForgotPasswordOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: 'Email and 6-digit OTP code are required' });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanOtp = otp.trim();
+
+    const otpRecord = await Otp.findOne({
+      email: cleanEmail,
+      inviteCode: 'FORGOT_PASSWORD',
+      otp: cleanOtp
+    });
+
+    if (!otpRecord) {
+      return res.status(400).json({ message: 'Invalid or expired 6-Digit OTP code. Please check your email and try again.' });
+    }
+
+    res.json({
+      success: true,
+      message: 'OTP verified successfully! Please enter your new password.'
+    });
+  } catch (error) {
+    console.error('Verify forgot password OTP error:', error);
+    res.status(500).json({ message: 'Server error verifying OTP' });
+  }
+};
+
+// @desc    Step 3: Update Password in Database with verified OTP
+// @route   POST /api/auth/reset-password-with-otp
+const resetPasswordWithOtp = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ message: 'Email, 6-digit OTP code, and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters long' });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanOtp = otp.trim();
+
+    // Verify OTP Record
+    const otpRecord = await Otp.findOne({
+      email: cleanEmail,
+      inviteCode: 'FORGOT_PASSWORD',
+      otp: cleanOtp
+    });
+
+    if (!otpRecord) {
+      return res.status(400).json({ message: 'Invalid or expired 6-Digit OTP code. Please check your email and try again.' });
+    }
+
+    const user = await User.findOne({ email: cleanEmail });
+    if (!user) {
+      return res.status(404).json({ message: 'User account not found' });
+    }
+
+    // Hash new password and unlock account if previously locked
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    user.failedLoginAttempts = 0;
+    user.lockUntil = undefined;
+    await user.save();
+
+    // Clean up OTP record
+    await Otp.deleteMany({ email: cleanEmail, inviteCode: 'FORGOT_PASSWORD' });
+
+    await SecurityLog.create({
+      eventType: 'PASSWORD_CHANGED',
+      email: cleanEmail,
+      userId: user._id,
+      ipAddress: req.ip || req.headers['x-forwarded-for'] || 'Unknown',
+      userAgent: req.headers['user-agent'] || 'Unknown',
+      details: 'Password successfully updated in database via verified 6-Digit Email OTP'
+    });
+
+    res.json({ message: 'Password updated successfully! You can now log in with your new password.' });
+  } catch (error) {
+    console.error('Reset password with OTP error:', error);
+    res.status(500).json({ message: 'Server error resetting password' });
+  }
+};
+
 // @desc    Authenticate user & get token (With Account Lockout Security Policy)
 // @route   POST /api/auth/login
 const loginUser = async (req, res) => {
@@ -160,7 +298,6 @@ const loginUser = async (req, res) => {
     const cleanEmail = email.toLowerCase().trim();
     const user = await User.findOne({ email: cleanEmail }).select('+password');
     if (!user) {
-      // Security Log for invalid email login
       await SecurityLog.create({
         eventType: 'FAILED_LOGIN',
         email: cleanEmail,
@@ -171,7 +308,7 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // 1. SECURITY LOCKOUT CHECK: Is the account locked due to too many failed attempts?
+    // 1. SECURITY LOCKOUT CHECK
     if (user.lockUntil && user.lockUntil > Date.now()) {
       const remainingMs = user.lockUntil.getTime() - Date.now();
       const remainingMins = Math.ceil(remainingMs / (60 * 1000));
@@ -193,12 +330,10 @@ const loginUser = async (req, res) => {
     // 2. PASSWORD CHECK
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      // Increment failed login counter
       user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
 
-      // Lock account if failed attempts hit 5
       if (user.failedLoginAttempts >= 5) {
-        user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // Lock for 15 minutes
+        user.lockUntil = new Date(Date.now() + 15 * 60 * 1000);
         await user.save();
 
         await SecurityLog.create({
@@ -232,7 +367,7 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // 3. SUCCESSFUL LOGIN: Reset lockout counters
+    // 3. SUCCESSFUL LOGIN
     user.failedLoginAttempts = 0;
     user.lockUntil = undefined;
     await user.save();
@@ -307,6 +442,9 @@ const searchUsers = async (req, res) => {
 module.exports = {
   sendRegisterOtp,
   registerUser,
+  sendForgotPasswordOtp,
+  verifyForgotPasswordOtp,
+  resetPasswordWithOtp,
   loginUser,
   getUserProfile,
   updateUserProfile,

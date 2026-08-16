@@ -123,8 +123,54 @@ const sendRegisterOtpEmail = async ({ email, name, otp }) => {
   }
 };
 
+/**
+ * Sends 6-digit Forgot Password OTP Email
+ */
+const sendForgotPasswordOtpEmail = async ({ email, name, otp }) => {
+  const senderEmail = process.env.SMTP_USER || process.env.GMAIL_USER || process.env.EMAIL_USER || 'no-reply@equallysplit.com';
+  
+  console.log('\n==========================================');
+  console.log(`🔑 [FORGOT PASSWORD OTP GENERATED FOR ${email}]`);
+  console.log(`👤 Name: ${name}`);
+  console.log(`✨ 6-DIGIT OTP CODE: [ ${otp} ]`);
+  console.log('==========================================\n');
+
+  const transporter = createTransporter();
+  
+  if (transporter) {
+    try {
+      await transporter.sendMail({
+        from: `"${process.env.APP_NAME || 'Equally Split'}" <${senderEmail}>`,
+        to: email,
+        subject: `Password Reset Verification Code - Equally Split`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff;">
+            <h2 style="color: #e11d48; margin-top: 0;">Equally Split Password Reset</h2>
+            <p>Hi <strong>${name}</strong>,</p>
+            <p>We received a request to reset your password for your Equally Split account.</p>
+            <p>Please enter the 6-digit One-Time Password (OTP) below to authorize your password reset:</p>
+            <div style="background-color: #fff1f2; padding: 18px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #e11d48; border-radius: 12px; margin: 20px 0; border: 1px solid #fecdd3;">
+              ${otp}
+            </div>
+            <p style="font-size: 12px; color: #6b7280;">This OTP code is valid for 10 minutes. If you did not request a password reset, please ignore this email immediately.</p>
+          </div>
+        `
+      });
+      console.log(`✉️ SUCCESS: Password Reset Real Email OTP sent to ${email}`);
+      return { success: true };
+    } catch (err) {
+      console.error('❌ Nodemailer Error sending password reset email:', err.message);
+      return { success: false, error: err.message };
+    }
+  } else {
+    console.warn(`⚠️ REAL EMAIL NOT SENT: Please set SMTP_USER and SMTP_PASS in server/.env file.`);
+    return { success: false, reason: 'NO_SMTP_CONFIG' };
+  }
+};
+
 module.exports = {
   generate6DigitOtp,
   sendInviteOtpEmail,
-  sendRegisterOtpEmail
+  sendRegisterOtpEmail,
+  sendForgotPasswordOtpEmail
 };

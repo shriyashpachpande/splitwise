@@ -46,6 +46,9 @@ app.use('/api', apiLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/send-otp', authLimiter);
+app.use('/api/auth/send-forgot-password-otp', authLimiter);
+app.use('/api/auth/verify-forgot-password-otp', authLimiter);
+app.use('/api/auth/reset-password-with-otp', authLimiter);
 
 // 5. Cookie Parser Middleware (HttpOnly Cookie Auth Support)
 app.use(cookieParser());
