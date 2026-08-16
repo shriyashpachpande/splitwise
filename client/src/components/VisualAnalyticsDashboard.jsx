@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { formatCurrency, formatSignedBalance } from '../utils/currencyFormatter';
 import { ThreeDColumnChart } from './ThreeDColumnChart';
 import { ThreeDGaugeRings } from './ThreeDGaugeRings';
@@ -7,17 +7,12 @@ import {
   BarChart3,
   PieChart as PieChartIcon,
   ArrowRightLeft,
-  Users,
-  TrendingUp,
-  TrendingDown,
-  Sparkles,
   Wallet,
   CheckCircle2,
-  DollarSign,
   ArrowRight,
-  ShieldAlert,
   Layers,
-  Award
+  Award,
+  TrendingUp
 } from 'lucide-react';
 
 export const VisualAnalyticsDashboard = ({
@@ -40,39 +35,45 @@ export const VisualAnalyticsDashboard = ({
   const sortedByPaid = [...members].sort((a, b) => (b.totalPaid || 0) - (a.totalPaid || 0));
   const topPayer = sortedByPaid[0];
 
-  // Category data
+  // Category breakdown
   const categoryBreakdown = analyticsData?.categoryBreakdown || {};
   const activeCategories = Object.entries(categoryBreakdown)
     .filter(([_, amt]) => amt > 0)
     .sort(([_, a], [__, b]) => b - a);
 
-  // Donut SVG Calculations
-  let cumulativeAngle = 0;
+  // SVG Donut Circle Math
+  const radius = 38;
+  const circumference = 2 * Math.PI * radius; // ~238.76
   const donutColors = [
     '#6366F1', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6', 
     '#06B6D4', '#F97316', '#3B82F6', '#14B8A6', '#64748B'
   ];
 
+  let cumulativeAmt = 0;
   const donutSlices = activeCategories.map(([catName, amt], index) => {
     const percentage = totalSpending > 0 ? amt / totalSpending : 0;
-    const angle = percentage * 360;
-    const startAngle = cumulativeAngle;
-    cumulativeAngle += angle;
+    const dashLen = percentage * circumference;
+    const startOffset = totalSpending > 0 ? (cumulativeAmt / totalSpending) * circumference : 0;
+    cumulativeAmt += amt;
 
     return {
       catName,
       amt,
       percentage: (percentage * 100).toFixed(1),
       color: donutColors[index % donutColors.length],
-      startAngle,
-      angle
+      dashLen,
+      startOffset
     };
   });
 
   return (
     <div className="space-y-6">
-      {/* 1. Header Hero Card with Analytics Pills (Bright Light Mode Card) */}
-      <div className="relative rounded-3xl p-6 bg-gradient-to-br from-indigo-50/90 via-white to-purple-50/90 text-slate-900 shadow-sm overflow-hidden border border-slate-200">
+      {/* 1. Header Hero Card with Analytics Pills */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative rounded-3xl p-6 bg-gradient-to-br from-indigo-50/90 via-white to-purple-50/90 text-slate-900 shadow-sm overflow-hidden border border-slate-200"
+      >
         <div className="absolute top-0 right-0 w-80 h-80 bg-violet-400/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-80 h-80 bg-indigo-400/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -82,7 +83,7 @@ export const VisualAnalyticsDashboard = ({
               <span className="p-2 rounded-2xl bg-indigo-100 text-indigo-600 border border-indigo-200 font-bold">
                 <BarChart3 className="w-5 h-5" />
               </span>
-              <h2 className="font-space text-2xl font-extrabold text-slate-900 tracking-tight">
+              <h2 className="font-space text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
                 Visual Analytics & Debt Matrix
               </h2>
             </div>
@@ -92,7 +93,7 @@ export const VisualAnalyticsDashboard = ({
           </div>
 
           {/* Quick Sub-Tab Filter Pills */}
-          <div className="flex items-center space-x-1.5 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/90 text-xs font-space font-bold">
+          <div className="flex flex-wrap items-center gap-1 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/90 text-xs font-space font-bold">
             {[
               { id: 'ALL', label: 'Overview', icon: Layers },
               { id: 'PAYMENTS', label: 'Member Payments', icon: Wallet },
@@ -123,7 +124,7 @@ export const VisualAnalyticsDashboard = ({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 relative z-10">
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
             <span className="text-[10px] font-space uppercase text-slate-400 tracking-wider font-bold">Total Group Budget</span>
-            <p className="font-space text-xl font-extrabold text-slate-900 mt-1">
+            <p className="font-space text-lg sm:text-xl font-extrabold text-slate-900 mt-1">
               {formatCurrency(totalSpending, currency)}
             </p>
             <span className="text-[10px] text-slate-500 font-medium mt-0.5 block">{expenses.length} total expenses</span>
@@ -131,7 +132,7 @@ export const VisualAnalyticsDashboard = ({
 
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
             <span className="text-[10px] font-space uppercase text-slate-400 tracking-wider font-bold">Top Contributor</span>
-            <p className="font-space text-lg font-extrabold text-emerald-600 mt-1 truncate">
+            <p className="font-space text-base sm:text-lg font-extrabold text-emerald-600 mt-1 truncate">
               {topPayer ? topPayer.name : 'N/A'}
             </p>
             <span className="text-[10px] text-slate-500 font-medium mt-0.5 block">
@@ -141,7 +142,7 @@ export const VisualAnalyticsDashboard = ({
 
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
             <span className="text-[10px] font-space uppercase text-slate-400 tracking-wider font-bold">Pending Settlements</span>
-            <p className="font-space text-xl font-extrabold text-amber-600 mt-1">
+            <p className="font-space text-lg sm:text-xl font-extrabold text-amber-600 mt-1">
               {simplifiedTx.length} transfers
             </p>
             <span className="text-[10px] text-slate-500 font-medium mt-0.5 block">Simplified debt count</span>
@@ -149,13 +150,13 @@ export const VisualAnalyticsDashboard = ({
 
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
             <span className="text-[10px] font-space uppercase text-slate-400 tracking-wider font-bold">Active Categories</span>
-            <p className="font-space text-xl font-extrabold text-purple-600 mt-1">
+            <p className="font-space text-lg sm:text-xl font-extrabold text-purple-600 mt-1">
               {activeCategories.length} types
             </p>
             <span className="text-[10px] text-slate-500 font-medium mt-0.5 block">Top: {activeCategories[0]?.[0] || 'None'}</span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* 3D ISOMETRIC COLUMN CHART (Infographic Column Blocks) */}
       {(activeSubTab === 'ALL' || activeSubTab === 'PAYMENTS') && (
@@ -175,11 +176,13 @@ export const VisualAnalyticsDashboard = ({
         />
       )}
 
-      {/* 2. CHART SECTION 1: WHO PAID HOW MUCH? (Member Spending Breakdown) */}
+      {/* 2. CHART SECTION 1: MEMBER SPENDING BREAKDOWN (Scroll Fill Animated Bars) */}
       {(activeSubTab === 'ALL' || activeSubTab === 'PAYMENTS') && (
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.6 }}
           className="finlance-card p-6 rounded-3xl border border-slate-200 bg-white space-y-5 shadow-sm"
         >
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
@@ -211,7 +214,14 @@ export const VisualAnalyticsDashboard = ({
               const avatar = m.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(m.name)}`;
 
               return (
-                <div key={m._id || index} className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-2.5 hover:border-violet-300 hover:bg-white transition-all">
+                <motion.div
+                  key={m._id || index}
+                  initial={{ opacity: 0, x: -15 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, amount: 0.15 }}
+                  transition={{ duration: 0.5, delay: index * 0.08 }}
+                  className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-2.5 hover:border-violet-300 hover:bg-white transition-all"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <img src={avatar} alt={m.name} className="w-9 h-9 rounded-full border border-slate-200 bg-white object-cover shadow-xs" />
@@ -241,12 +251,13 @@ export const VisualAnalyticsDashboard = ({
                     </div>
                   </div>
 
-                  {/* Animated Visual Bar Track */}
-                  <div className="relative w-full h-3 bg-slate-200/80 rounded-full overflow-hidden">
+                  {/* Animated Visual Bar Track (Fill from 0% -> target % on Scroll) */}
+                  <div className="relative w-full h-3.5 bg-slate-200/80 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
-                      animate={{ width: `${barPercentage}%` }}
-                      transition={{ duration: 0.8, delay: index * 0.1 }}
+                      whileInView={{ width: `${barPercentage}%` }}
+                      viewport={{ once: true, amount: 0.15 }}
+                      transition={{ duration: 0.8, delay: index * 0.1, ease: 'easeOut' }}
                       className={`h-full rounded-full bg-gradient-to-r ${
                         index === 0
                           ? 'from-amber-500 via-orange-500 to-indigo-600'
@@ -254,7 +265,7 @@ export const VisualAnalyticsDashboard = ({
                       }`}
                     />
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -264,8 +275,10 @@ export const VisualAnalyticsDashboard = ({
       {/* 3. CHART SECTION 2: WHO OWES WHOM HOW MUCH? (Pairwise Settlement Flow) */}
       {(activeSubTab === 'ALL' || activeSubTab === 'DEBTS') && (
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.6 }}
           className="finlance-card p-6 rounded-3xl border border-slate-200 bg-white space-y-5 shadow-sm"
         >
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
@@ -309,8 +322,9 @@ export const VisualAnalyticsDashboard = ({
                   <motion.div
                     key={idx}
                     initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3, delay: idx * 0.05 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true, amount: 0.15 }}
+                    transition={{ duration: 0.4, delay: idx * 0.05 }}
                     className="p-5 rounded-3xl bg-slate-50/90 border border-slate-200/90 hover:border-violet-300 hover:bg-white transition-all space-y-4 shadow-xs"
                   >
                     {/* Visual Flow Header */}
@@ -376,10 +390,12 @@ export const VisualAnalyticsDashboard = ({
       {/* 4. CHART SECTION 3: CATEGORY & NET POSITIONS GRAPH */}
       {(activeSubTab === 'ALL' || activeSubTab === 'CATEGORIES') && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Category Donut & List Chart */}
+          {/* Category Donut & List Chart (FIXED & SCROLL ANIMATED SVG DONUT) */}
           <motion.div
-            initial={{ opacity: 0, x: -15 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, x: -25 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.6 }}
             className="finlance-card p-6 rounded-3xl border border-slate-200 bg-white space-y-4 shadow-sm"
           >
             <div className="flex items-center space-x-3 border-b border-slate-100 pb-3">
@@ -395,50 +411,74 @@ export const VisualAnalyticsDashboard = ({
             {activeCategories.length === 0 ? (
               <div className="py-8 text-center text-xs text-slate-400">No category breakdown available.</div>
             ) : (
-              <div className="space-y-4">
-                {/* SVG Animated Donut Graph */}
-                <div className="flex items-center justify-center py-2 relative">
-                  <svg className="w-48 h-48 transform -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      className="text-slate-100"
-                      strokeWidth="3.8"
-                      stroke="currentColor"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                    {donutSlices.map((slice, i) => (
-                      <path
-                        key={i}
-                        strokeDasharray={`${slice.angle * (100 / 360)}, 100`}
-                        strokeDashoffset={`-${slice.startAngle * (100 / 360)}`}
-                        stroke={slice.color}
-                        strokeWidth="3.8"
+              <div className="space-y-5">
+                {/* SVG Animated Donut Graph with Circle Arcs */}
+                <div className="flex items-center justify-center py-3 relative">
+                  <div className="w-48 h-48 sm:w-56 sm:h-56 relative flex items-center justify-center">
+                    <svg className="w-full h-full transform -rotate-90 drop-shadow-md" viewBox="0 0 100 100">
+                      {/* Outer Background Track Circle */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r={radius}
+                        className="text-slate-100"
+                        strokeWidth="10"
+                        stroke="currentColor"
                         fill="none"
-                        className="transition-all duration-700 hover:stroke-width-5 cursor-pointer"
                       />
-                    ))}
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-                    <span className="text-[10px] font-space font-bold uppercase text-slate-400">Total Spent</span>
-                    <span className="font-space text-base font-extrabold text-slate-900">
-                      {formatCurrency(totalSpending, currency)}
-                    </span>
+
+                      {/* Animated Colored Donut Slices */}
+                      {donutSlices.map((slice, i) => (
+                        <motion.circle
+                          key={slice.catName || i}
+                          cx="50"
+                          cy="50"
+                          r={radius}
+                          stroke={slice.color}
+                          strokeWidth="10"
+                          strokeLinecap="round"
+                          fill="none"
+                          strokeDasharray={`${slice.dashLen} ${circumference}`}
+                          strokeDashoffset={-slice.startOffset}
+                          initial={{ strokeDasharray: `0 ${circumference}` }}
+                          whileInView={{ strokeDasharray: `${slice.dashLen} ${circumference}` }}
+                          viewport={{ once: true, amount: 0.15 }}
+                          transition={{ duration: 1, delay: i * 0.12, ease: 'easeOut' }}
+                          className="hover:stroke-[12] transition-all cursor-pointer"
+                        />
+                      ))}
+                    </svg>
+
+                    {/* Center Total Spending Display */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none p-4">
+                      <span className="text-[10px] font-space font-bold uppercase text-slate-400 tracking-wider">Total Spent</span>
+                      <span className="font-space text-base sm:text-lg font-extrabold text-slate-900">
+                        {formatCurrency(totalSpending, currency)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Category Legend List */}
-                <div className="space-y-2 pt-2 border-t border-slate-100">
+                <div className="space-y-2.5 pt-3 border-t border-slate-100">
                   {donutSlices.map((slice, i) => (
-                    <div key={i} className="flex items-center justify-between text-xs font-space">
-                      <div className="flex items-center space-x-2">
-                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: slice.color }} />
+                    <motion.div
+                      key={slice.catName || i}
+                      initial={{ opacity: 0, y: 8 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.15 }}
+                      transition={{ duration: 0.4, delay: i * 0.05 }}
+                      className="flex items-center justify-between text-xs font-space p-2 rounded-xl hover:bg-slate-50 transition-colors"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <span className="w-3.5 h-3.5 rounded-full shadow-xs" style={{ backgroundColor: slice.color }} />
                         <span className="font-bold text-slate-800">{slice.catName}</span>
                       </div>
                       <div className="text-right">
                         <span className="font-extrabold text-slate-900">{formatCurrency(slice.amt, currency)}</span>
                         <span className="text-slate-400 ml-1.5">({slice.percentage}%)</span>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -447,8 +487,10 @@ export const VisualAnalyticsDashboard = ({
 
           {/* Member Net Position Balance Matrix */}
           <motion.div
-            initial={{ opacity: 0, x: 15 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, x: 25 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.6 }}
             className="finlance-card p-6 rounded-3xl border border-slate-200 bg-white space-y-4 shadow-sm"
           >
             <div className="flex items-center space-x-3 border-b border-slate-100 pb-3">
@@ -468,7 +510,7 @@ export const VisualAnalyticsDashboard = ({
                 const isNeg = net < -0.01;
 
                 return (
-                  <div key={m._id} className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                  <div key={m._id} className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between hover:bg-white hover:border-slate-300 transition-all">
                     <div className="flex items-center space-x-3">
                       <img
                         src={m.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(m.name)}`}

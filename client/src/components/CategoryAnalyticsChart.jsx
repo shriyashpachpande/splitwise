@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { formatCurrency } from '../utils/currencyFormatter';
 import { ThreeDGaugeRings } from './ThreeDGaugeRings';
 import { PieChart, Utensils, Plane, Hotel, Ticket, Music, Tv, ShoppingBag, Fuel, Wine, Compass, HelpCircle } from 'lucide-react';
@@ -22,8 +23,6 @@ export const CategoryAnalyticsChart = ({ analyticsData, currency = 'INR' }) => {
 
   const {
     totalGroupSpending = 0,
-    currentUserPaid = 0,
-    currentUserShare = 0,
     categoryBreakdown = {}
   } = analyticsData;
 
@@ -41,7 +40,13 @@ export const CategoryAnalyticsChart = ({ analyticsData, currency = 'INR' }) => {
       />
 
       {/* Category Spending Breakdown Card */}
-      <div className="saas-card p-6 rounded-3xl border border-slate-200 bg-white space-y-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.5 }}
+        className="saas-card p-6 rounded-3xl border border-slate-200 bg-white space-y-4 shadow-sm"
+      >
         <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
           <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
             <PieChart className="w-4 h-4" />
@@ -58,7 +63,7 @@ export const CategoryAnalyticsChart = ({ analyticsData, currency = 'INR' }) => {
           </div>
         ) : (
           <div className="space-y-4">
-            {activeCategories.map(([catName, amt]) => {
+            {activeCategories.map(([catName, amt], index) => {
               const IconComponent = CATEGORY_ICONS[catName] || HelpCircle;
               const pct = totalGroupSpending > 0 ? ((amt / totalGroupSpending) * 100).toFixed(1) : 0;
 
@@ -78,11 +83,14 @@ export const CategoryAnalyticsChart = ({ analyticsData, currency = 'INR' }) => {
                     </div>
                   </div>
 
-                  {/* Clean Indigo Progress Bar */}
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-indigo-600 rounded-full transition-all duration-500"
-                      style={{ width: `${pct}%` }}
+                  {/* Clean Indigo Progress Bar with Scroll Fill Animation */}
+                  <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      whileInView={{ width: `${pct}%` }}
+                      viewport={{ once: true, amount: 0.15 }}
+                      transition={{ duration: 0.8, delay: index * 0.1, ease: 'easeOut' }}
+                      className="h-full bg-gradient-to-r from-indigo-500 to-violet-600 rounded-full"
                     />
                   </div>
                 </div>
@@ -90,7 +98,7 @@ export const CategoryAnalyticsChart = ({ analyticsData, currency = 'INR' }) => {
             })}
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };
