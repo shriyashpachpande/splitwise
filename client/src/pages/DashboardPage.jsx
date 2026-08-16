@@ -16,8 +16,6 @@ import {
   Search,
   Sparkles,
   ArrowRight,
-  CheckCircle2,
-  Receipt,
   Activity as ActivityIcon
 } from 'lucide-react';
 
@@ -33,20 +31,17 @@ export const DashboardPage = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [groupsRes, actRes] = await Promise.all([
-        api.get('/groups'),
-        api.get('/groups').catch(() => ({ data: [] }))
-      ]);
-      setGroups(groupsRes.data);
+      const groupsRes = await api.get('/groups');
+      setGroups(groupsRes.data || []);
       
-      // Collect recent activities across groups if available or fetch activity endpoint
+      // Fetch recent global activity notifications feed
       try {
-        const recentAct = await api.get('/activity').catch(() => null);
-        if (recentAct && recentAct.data) {
-          setActivities(recentAct.data.slice(0, 6));
+        const notifRes = await api.get('/notifications').catch(() => null);
+        if (notifRes && notifRes.data) {
+          setActivities(notifRes.data.slice(0, 5));
         }
       } catch (e) {
-        console.log('No global activity endpoint');
+        // Silently handle if notifications unavailable
       }
     } catch (err) {
       console.error('Error fetching dashboard groups', err);
@@ -97,13 +92,13 @@ export const DashboardPage = () => {
     >
       <div className="space-y-8">
         
-        {/* Top Finlance Header Greeting */}
+        {/* Top Header Greeting */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="font-space text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
               {getGreeting()}, {user?.name?.split(' ')[0] || 'there'} 👋
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
               Here's what's happening with your trip balances today.
             </p>
           </div>
@@ -117,13 +112,11 @@ export const DashboardPage = () => {
           </button>
         </div>
 
-        {/* Finlance Hero Net Position Balance Card */}
+        {/* Hero Net Position Balance Card */}
         <div className="finlance-hero-card p-8 text-white relative overflow-hidden">
-          {/* Subtle Ambient Glowing Background Orbs */}
           <div className="absolute right-[-40px] top-[-40px] w-96 h-96 bg-gradient-to-br from-purple-400/20 to-indigo-300/10 blur-[100px] rounded-full pointer-events-none" />
           <div className="absolute left-[-20px] bottom-[-20px] w-72 h-72 bg-gradient-to-tr from-pink-500/15 to-violet-400/10 blur-[90px] rounded-full pointer-events-none" />
 
-          {/* Finlance Sparkline Overlay Graphic */}
           <svg className="absolute right-6 bottom-4 w-64 lg:w-96 h-32 opacity-25 pointer-events-none" viewBox="0 0 400 150" fill="none">
             <path d="M0,120 Q50,90 100,105 T200,60 T300,80 T400,20" stroke="white" strokeWidth="3.5" strokeLinecap="round" fill="none" />
             <circle cx="400" cy="20" r="6" fill="white" />
@@ -160,7 +153,7 @@ export const DashboardPage = () => {
           </div>
         </div>
 
-        {/* 4 Finlance Metric Cards */}
+        {/* 4 Metric Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <div className="finlance-card p-5 rounded-3xl space-y-3 bg-white">
             <div className="flex items-center justify-between text-slate-400">
@@ -213,7 +206,7 @@ export const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Main 2-Column Section: Groups (2/3) + Finlance Recent Activity (1/3) */}
+        {/* Main 2-Column Section: Groups (2/3) + Recent Activity Widget (1/3) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Left Column (2/3): Groups List */}
@@ -283,7 +276,7 @@ export const DashboardPage = () => {
             )}
           </div>
 
-          {/* Right Column (1/3): Finlance Recent Activity Widget */}
+          {/* Right Column (1/3): Live Recent Activity Widget */}
           <div className="space-y-6">
             <div className="finlance-card p-6 rounded-3xl bg-white space-y-5">
               <div className="flex items-center justify-between">
@@ -297,31 +290,26 @@ export const DashboardPage = () => {
                 </Link>
               </div>
 
-              <div className="space-y-3.5">
-                {groups.length === 0 ? (
-                  <p className="text-xs text-slate-400 text-center py-6">No recent transactions recorded.</p>
+              <div className="space-y-3">
+                {activities.length === 0 ? (
+                  <p className="text-xs text-slate-400 text-center py-6 font-medium">No recent transactions recorded.</p>
                 ) : (
-                  groups.slice(0, 5).map((g, idx) => (
+                  activities.map((act, idx) => (
                     <div
-                      key={g._id || idx}
-                      className="flex items-center justify-between p-3 rounded-2xl bg-slate-50/70 border border-slate-100 hover:bg-slate-50 transition-colors"
+                      key={act._id || idx}
+                      className="p-3 rounded-2xl bg-slate-50/80 border border-slate-100 space-y-1 hover:bg-slate-100/70 transition-colors"
                     >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-9 h-9 rounded-2xl bg-violet-100/80 text-violet-700 border border-violet-200/60 flex items-center justify-center text-xs font-bold shadow-sm">
-                          🏔
-                        </div>
-                        <div className="truncate max-w-[130px]">
-                          <p className="font-space text-xs font-bold text-slate-800 truncate">{g.name}</p>
-                          <p className="text-[10px] text-slate-400">{g.status} • {g.members?.length || 0} members</p>
-                        </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-space font-extrabold uppercase text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+                          {act.groupName}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium">
+                          {new Date(act.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+                        </span>
                       </div>
-
-                      <div className="text-right">
-                        <p className="font-space text-xs font-extrabold text-slate-900">
-                          {formatCurrency(g.totalSpending || 0, g.currency)}
-                        </p>
-                        <span className="text-[10px] text-violet-600 font-semibold">Total Spent</span>
-                      </div>
+                      <p className="font-space text-xs font-semibold text-slate-900 line-clamp-2">
+                        {act.description}
+                      </p>
                     </div>
                   ))
                 )}
