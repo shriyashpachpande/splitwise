@@ -106,7 +106,7 @@ export const ThreeDColumnChart = ({ members = [], currency = 'INR', totalSpendin
       {/* Grid Floor Overlay & 3D Isometric Columns Canvas */}
       <div className="relative pt-8 pb-4 px-2 sm:px-6 rounded-3xl bg-gradient-to-b from-indigo-50/70 via-slate-50 to-purple-50/50 text-slate-900 border border-slate-200 shadow-inner overflow-hidden">
         {/* Subtle 3D Light Grid Backdrop Background */}
-        <div 
+        <div
           className="absolute inset-0 opacity-40 pointer-events-none"
           style={{
             backgroundImage: `linear-gradient(to right, #cbd5e1 1px, transparent 1px), linear-gradient(to bottom, #cbd5e1 1px, transparent 1px)`,
@@ -128,7 +128,7 @@ export const ThreeDColumnChart = ({ members = [], currency = 'INR', totalSpendin
 
             return (
               <div key={m._id || idx} className="flex-1 flex flex-col items-center group relative max-w-[85px] sm:max-w-[100px]">
-                
+
                 {/* Floating Value Pill Above 3D Column */}
                 <motion.div
                   initial={{ opacity: 0, y: 15, scale: 0.8 }}
@@ -150,7 +150,7 @@ export const ThreeDColumnChart = ({ members = [], currency = 'INR', totalSpendin
 
                 {/* 3D Column Bar - Re-animates fill every time on scroll */}
                 <div className="w-full relative flex flex-col justify-end" style={{ height: `${heightPct * 2.2}px` }}>
-                  
+
                   {/* Top 3D Cap */}
                   <motion.div
                     initial={{ scale: 0 }}

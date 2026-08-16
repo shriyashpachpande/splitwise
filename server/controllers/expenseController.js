@@ -3,6 +3,12 @@ const Group = require('../models/Group');
 const Activity = require('../models/Activity');
 const { calculateExpenseShares } = require('../services/expenseCalculationService');
 
+// Helper to check group membership authorization (IDOR Security Guard)
+const verifyGroupMember = (group, userId) => {
+  if (!group) return false;
+  return group.members.some(m => m.toString() === userId.toString());
+};
+
 // @desc    Create new expense in a group
 // @route   POST /api/groups/:groupId/expenses
 const createExpense = async (req, res) => {
@@ -13,6 +19,11 @@ const createExpense = async (req, res) => {
     const group = await Group.findById(groupId);
     if (!group) {
       return res.status(404).json({ message: 'Group not found' });
+    }
+
+    // Security Check: Only active group members can create expenses
+    if (!verifyGroupMember(group, req.user._id)) {
+      return res.status(403).json({ message: 'Access denied: You are not a member of this group' });
     }
 
     const memberIds = group.members.map(m => m.toString());
@@ -66,6 +77,16 @@ const getGroupExpenses = async (req, res) => {
     const { groupId } = req.params;
     const { category, search, userId } = req.query;
 
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ message: 'Group not found' });
+    }
+
+    // Security Check: Only active group members can view expenses
+    if (!verifyGroupMember(group, req.user._id)) {
+      return res.status(403).json({ message: 'Access denied: You are not a member of this group' });
+    }
+
     const filter = { groupId };
 
     if (category && category !== 'All') {
@@ -109,6 +130,11 @@ const getExpenseDetails = async (req, res) => {
       return res.status(404).json({ message: 'Expense not found' });
     }
 
+    const group = await Group.findById(expense.groupId);
+    if (!verifyGroupMember(group, req.user._id)) {
+      return res.status(403).json({ message: 'Access denied: You are not a member of this group' });
+    }
+
     res.json(expense);
   } catch (error) {
     res.status(500).json({ message: 'Server error fetching expense details' });
@@ -125,8 +151,11 @@ const updateExpense = async (req, res) => {
     }
 
     const group = await Group.findById(expense.groupId);
-    const memberIds = group.members.map(m => m.toString());
+    if (!verifyGroupMember(group, req.user._id)) {
+      return res.status(403).json({ message: 'Access denied: You are not a member of this group' });
+    }
 
+    const memberIds = group.members.map(m => m.toString());
     const { description, category, amount, date, payers, splitType, participants, items } = req.body;
 
     const newAmount = amount !== undefined ? Number(amount) : expense.amount;
@@ -181,6 +210,11 @@ const deleteExpense = async (req, res) => {
     const expense = await Expense.findById(req.params.id);
     if (!expense) {
       return res.status(404).json({ message: 'Expense not found' });
+    }
+
+    const group = await Group.findById(expense.groupId);
+    if (!verifyGroupMember(group, req.user._id)) {
+      return res.status(403).json({ message: 'Access denied: You are not a member of this group' });
     }
 
     const groupId = expense.groupId;

@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { 
-  Wallet, 
-  LayoutDashboard, 
-  Users, 
-  Activity, 
-  User, 
-  LogOut, 
-  PlusCircle, 
-  ChevronDown 
+import {
+  Wallet,
+  LayoutDashboard,
+  Users,
+  Activity,
+  User,
+  LogOut,
+  PlusCircle,
+  ChevronDown
 } from 'lucide-react';
 
 export const Navbar = ({ onOpenCreateGroup }) => {
@@ -23,7 +23,7 @@ export const Navbar = ({ onOpenCreateGroup }) => {
   return (
     <nav className="sticky top-0 z-40 w-full glass-card border-b border-slate-800/80 px-4 lg:px-8 py-3">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        
+
         {/* Brand Logo */}
         <Link to="/" className="flex items-center space-x-3 group">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
@@ -40,11 +40,10 @@ export const Navbar = ({ onOpenCreateGroup }) => {
         <div className="hidden md:flex items-center space-x-1 bg-slate-900/60 p-1 rounded-xl border border-slate-800">
           <Link
             to="/dashboard"
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              isActive('/dashboard')
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${isActive('/dashboard')
                 ? 'bg-emerald-500 text-slate-950 font-semibold shadow-md shadow-emerald-500/20'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-            }`}
+              }`}
           >
             <LayoutDashboard className="w-4 h-4" />
             <span>Dashboard</span>
@@ -52,11 +51,10 @@ export const Navbar = ({ onOpenCreateGroup }) => {
 
           <Link
             to="/groups"
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              isActive('/groups')
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${isActive('/groups')
                 ? 'bg-emerald-500 text-slate-950 font-semibold shadow-md shadow-emerald-500/20'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-            }`}
+              }`}
           >
             <Users className="w-4 h-4" />
             <span>Groups</span>
@@ -64,11 +62,10 @@ export const Navbar = ({ onOpenCreateGroup }) => {
 
           <Link
             to="/activity"
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              isActive('/activity')
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${isActive('/activity')
                 ? 'bg-emerald-500 text-slate-950 font-semibold shadow-md shadow-emerald-500/20'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-            }`}
+              }`}
           >
             <Activity className="w-4 h-4" />
             <span>Activity</span>

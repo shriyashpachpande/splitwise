@@ -45,7 +45,7 @@ export const VisualAnalyticsDashboard = ({
   const radius = 38;
   const circumference = 2 * Math.PI * radius; // ~238.76
   const donutColors = [
-    '#6366F1', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6', 
+    '#6366F1', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6',
     '#06B6D4', '#F97316', '#3B82F6', '#14B8A6', '#64748B'
   ];
 
@@ -106,11 +106,10 @@ export const VisualAnalyticsDashboard = ({
                 <button
                   key={tab.id}
                   onClick={() => setActiveSubTab(tab.id)}
-                  className={`px-3 py-2 rounded-xl transition-all flex items-center space-x-1.5 ${
-                    isSelected
+                  className={`px-3 py-2 rounded-xl transition-all flex items-center space-x-1.5 ${isSelected
                       ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
                   <span>{tab.label}</span>
@@ -258,11 +257,10 @@ export const VisualAnalyticsDashboard = ({
                       whileInView={{ width: `${barPercentage}%` }}
                       viewport={{ once: false, amount: 0.15 }}
                       transition={{ duration: 0.8, delay: index * 0.1, ease: 'easeOut' }}
-                      className={`h-full rounded-full bg-gradient-to-r ${
-                        index === 0
+                      className={`h-full rounded-full bg-gradient-to-r ${index === 0
                           ? 'from-amber-500 via-orange-500 to-indigo-600'
                           : 'from-violet-500 to-indigo-600'
-                      }`}
+                        }`}
                     />
                   </div>
                 </motion.div>
@@ -519,20 +517,18 @@ export const VisualAnalyticsDashboard = ({
                       />
                       <div>
                         <p className="font-space text-xs font-bold text-slate-900">{m.name}</p>
-                        <span className={`text-[10px] font-space font-semibold px-2 py-0.5 rounded-full ${
-                          isPos
+                        <span className={`text-[10px] font-space font-semibold px-2 py-0.5 rounded-full ${isPos
                             ? 'bg-emerald-100 text-emerald-800'
                             : 'bg-rose-100 text-rose-800'
-                        }`}>
+                          }`}>
                           {isPos ? 'Receivable' : isNeg ? 'Liability' : 'Settled'}
                         </span>
                       </div>
                     </div>
 
                     <div className="text-right">
-                      <p className={`font-space text-sm font-extrabold ${
-                        isPos ? 'text-emerald-600' : isNeg ? 'text-rose-600' : 'text-slate-500'
-                      }`}>
+                      <p className={`font-space text-sm font-extrabold ${isPos ? 'text-emerald-600' : isNeg ? 'text-rose-600' : 'text-slate-500'
+                        }`}>
                         {formatSignedBalance(net, currency)}
                       </p>
                     </div>

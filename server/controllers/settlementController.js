@@ -7,6 +7,14 @@ const { validateSettlement } = require('../services/settlementService');
 const { calculateGroupBalances } = require('../services/balanceService');
 const { simplifyBalances } = require('../services/balanceSimplificationService');
 
+const verifyGroupMember = (group, userId) => {
+  if (!group) return false;
+  return group.members.some(m => {
+    const mId = m._id ? m._id.toString() : m.toString();
+    return mId === userId.toString();
+  });
+};
+
 // @desc    Create a settlement (Settle Up)
 // @route   POST /api/groups/:groupId/settlements
 const createSettlement = async (req, res) => {
@@ -17,6 +25,10 @@ const createSettlement = async (req, res) => {
     const group = await Group.findById(groupId);
     if (!group) {
       return res.status(404).json({ message: 'Group not found' });
+    }
+
+    if (!verifyGroupMember(group, req.user._id)) {
+      return res.status(403).json({ message: 'Access denied: You are not a member of this group' });
     }
 
     const actualFromUser = fromUser || fromUserId || req.user._id;
@@ -70,6 +82,16 @@ const createSettlement = async (req, res) => {
 const getGroupSettlements = async (req, res) => {
   try {
     const { groupId } = req.params;
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ message: 'Group not found' });
+    }
+
+    if (!verifyGroupMember(group, req.user._id)) {
+      return res.status(403).json({ message: 'Access denied: You are not a member of this group' });
+    }
+
     const settlements = await Settlement.find({ groupId })
       .populate('fromUser', 'name email avatar')
       .populate('toUser', 'name email avatar')
@@ -92,13 +114,16 @@ const getGroupBalances = async (req, res) => {
       return res.status(404).json({ message: 'Group not found' });
     }
 
+    if (!verifyGroupMember(group, req.user._id)) {
+      return res.status(403).json({ message: 'Access denied: You are not a member of this group' });
+    }
+
     const expenses = await Expense.find({ groupId });
     const settlements = await Settlement.find({ groupId });
 
     const memberIds = group.members.map(m => m._id);
     const { memberBalances, rawDebts, invariantPassed } = calculateGroupBalances(memberIds, expenses, settlements);
 
-    // Populate user info in rawDebts
     const populatedDebts = rawDebts.map(debt => {
       const fromMember = group.members.find(m => m._id.toString() === debt.fromUser);
       const toMember = group.members.find(m => m._id.toString() === debt.toUser);
@@ -140,6 +165,10 @@ const getGroupSimplifiedBalances = async (req, res) => {
       return res.status(404).json({ message: 'Group not found' });
     }
 
+    if (!verifyGroupMember(group, req.user._id)) {
+      return res.status(403).json({ message: 'Access denied: You are not a member of this group' });
+    }
+
     const expenses = await Expense.find({ groupId });
     const settlements = await Settlement.find({ groupId });
 
@@ -148,7 +177,6 @@ const getGroupSimplifiedBalances = async (req, res) => {
 
     const simplifiedTx = simplifyBalances(memberBalances);
 
-    // Populate user profiles in simplified transactions
     const populatedTx = simplifiedTx.map(tx => {
       const fromMember = group.members.find(m => m._id.toString() === tx.fromUser);
       const toMember = group.members.find(m => m._id.toString() === tx.toUser);
