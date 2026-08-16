@@ -1,5 +1,6 @@
 import React from 'react';
 import { formatCurrency } from '../utils/currencyFormatter';
+import { ThreeDGaugeRings } from './ThreeDGaugeRings';
 import { PieChart, Utensils, Plane, Hotel, Ticket, Music, Tv, ShoppingBag, Fuel, Wine, Compass, HelpCircle } from 'lucide-react';
 
 const CATEGORY_ICONS = {
@@ -14,20 +15,6 @@ const CATEGORY_ICONS = {
   Drinks: Wine,
   Activities: Compass,
   Other: HelpCircle
-};
-
-const CATEGORY_COLORS = {
-  Food: 'from-amber-500 to-orange-500',
-  Travel: 'from-blue-500 to-cyan-500',
-  Hotel: 'from-indigo-500 to-purple-500',
-  Tickets: 'from-emerald-500 to-teal-500',
-  Music: 'from-pink-500 to-rose-500',
-  Entertainment: 'from-violet-500 to-purple-500',
-  Shopping: 'from-fuchsia-500 to-pink-500',
-  Fuel: 'from-yellow-500 to-amber-500',
-  Drinks: 'from-rose-500 to-red-500',
-  Activities: 'from-teal-500 to-emerald-500',
-  Other: 'from-slate-400 to-slate-500'
 };
 
 export const CategoryAnalyticsChart = ({ analyticsData, currency = 'INR' }) => {
@@ -46,8 +33,15 @@ export const CategoryAnalyticsChart = ({ analyticsData, currency = 'INR' }) => {
 
   return (
     <div className="space-y-6">
+      {/* 3D Gauge Rings Header */}
+      <ThreeDGaugeRings
+        analyticsData={analyticsData}
+        totalSpending={totalGroupSpending}
+        currency={currency}
+      />
+
       {/* Category Spending Breakdown Card */}
-      <div className="saas-card p-6 rounded-2xl border border-slate-200 bg-white space-y-4">
+      <div className="saas-card p-6 rounded-3xl border border-slate-200 bg-white space-y-4">
         <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
           <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
             <PieChart className="w-4 h-4" />

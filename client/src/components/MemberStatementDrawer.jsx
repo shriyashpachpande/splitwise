@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, ArrowUpRight, ArrowDownLeft, Receipt, Wallet, Sparkles, ArrowRight, CheckCircle2, History, Scale } from 'lucide-react';
+import { X, User, ArrowUpRight, ArrowDownLeft, Receipt, Wallet, Sparkles, ArrowRight, CheckCircle2, History, Scale, FileText, FileSpreadsheet } from 'lucide-react';
 import Lenis from 'lenis';
 import { formatCurrency, formatSignedBalance } from '../utils/currencyFormatter';
+import { exportMemberStatementPdf } from '../utils/pdfExport';
+import { exportMemberStatementExcel } from '../utils/excelExport';
 
 export const MemberStatementDrawer = ({
   isOpen,
   onClose,
   member,
+  group = {},
   allMembers = [],
   expenses = [],
   settlements = [],
@@ -396,12 +399,30 @@ export const MemberStatementDrawer = ({
           </div>
 
           {/* Footer */}
-          <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between flex-shrink-0">
+          <div className="p-4 sm:p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between flex-shrink-0 gap-2.5">
+            <button
+              onClick={() => exportMemberStatementPdf(member, group, expenses, simplifiedTx, currency)}
+              className="flex-1 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-space font-bold text-xs border border-rose-200/90 transition-all flex items-center justify-center space-x-1.5 shadow-sm"
+              title="Export Member PDF Statement"
+            >
+              <FileText className="w-4 h-4 text-rose-600" />
+              <span>Export PDF</span>
+            </button>
+
+            <button
+              onClick={() => exportMemberStatementExcel(member, group, expenses, simplifiedTx, currency)}
+              className="flex-1 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-space font-bold text-xs border border-emerald-200/90 transition-all flex items-center justify-center space-x-1.5 shadow-sm"
+              title="Export Member Excel Spreadsheet"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <span>Export Excel</span>
+            </button>
+
             <button
               onClick={onClose}
-              className="w-full py-2.5 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-space font-bold text-xs transition-colors"
+              className="py-2.5 px-4 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-space font-bold text-xs transition-colors"
             >
-              Close Statement
+              Close
             </button>
           </div>
         </motion.div>

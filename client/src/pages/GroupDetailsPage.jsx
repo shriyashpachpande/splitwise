@@ -13,7 +13,10 @@ import { ExpenseDetailsDrawer } from '../components/ExpenseDetailsDrawer';
 import { SettlementBreakdownDrawer } from '../components/SettlementBreakdownDrawer';
 import { MemberStatementDrawer } from '../components/MemberStatementDrawer';
 import { InviteMemberModal } from '../components/InviteMemberModal';
+import { VisualAnalyticsDashboard } from '../components/VisualAnalyticsDashboard';
 import { formatCurrency, formatSignedBalance } from '../utils/currencyFormatter';
+import { exportGroupPdf } from '../utils/pdfExport';
+import { exportGroupExcel } from '../utils/excelExport';
 import {
   ArrowLeft,
   Calendar,
@@ -35,7 +38,10 @@ import {
   TrendingDown,
   Clock,
   Zap,
-  Trash2
+  Trash2,
+  FileText,
+  FileSpreadsheet,
+  BarChart3
 } from 'lucide-react';
 
 export const GroupDetailsPage = () => {
@@ -179,7 +185,8 @@ export const GroupDetailsPage = () => {
     { id: 'Balances', label: 'Balances', icon: Scale },
     { id: 'Members', label: `Members (${group.members.length})`, icon: Users },
     { id: 'Settlements', label: `Settlements (${settlements.length})`, icon: History },
-    { id: 'Activity', label: 'Activity', icon: ActivityIcon }
+    { id: 'Activity', label: 'Activity', icon: ActivityIcon },
+    { id: 'Analytics', label: 'Visual Analytics 📊', icon: BarChart3 }
   ];
 
   return (
@@ -284,7 +291,25 @@ export const GroupDetailsPage = () => {
             </div>
 
             {/* Premium Header CTAs Bar */}
-            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto pt-2 lg:pt-0">
+            <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto pt-2 lg:pt-0">
+              <button
+                onClick={() => exportGroupPdf(group, expenses, settlements, simplifiedTx, analyticsData)}
+                className="flex-1 lg:flex-none px-4 py-3 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-space font-bold text-xs border border-rose-200/90 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center space-x-1.5 shadow-sm"
+                title="Export Detailed PDF Report"
+              >
+                <FileText className="w-4 h-4 text-rose-600" />
+                <span>PDF Export</span>
+              </button>
+
+              <button
+                onClick={() => exportGroupExcel(group, expenses, settlements, simplifiedTx, analyticsData)}
+                className="flex-1 lg:flex-none px-4 py-3 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-space font-bold text-xs border border-emerald-200/90 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center space-x-1.5 shadow-sm"
+                title="Export Detailed Excel Spreadsheet"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                <span>Excel Export</span>
+              </button>
+
               <button
                 onClick={() => setIsAddMemberOpen(true)}
                 className="flex-1 lg:flex-none px-4 py-3 rounded-full bg-slate-100 hover:bg-slate-200/80 text-slate-800 font-space font-bold text-xs border border-slate-200/90 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center space-x-2 shadow-sm"
@@ -304,11 +329,11 @@ export const GroupDetailsPage = () => {
               {((group.createdBy?._id || group.createdBy)?.toString() === (currentUser?._id || currentUser?.id)?.toString()) && (
                 <button
                   onClick={() => setIsDeleteModalOpen(true)}
-                  className="flex-1 lg:flex-none px-4 py-3 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-space font-bold text-xs border border-rose-200 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center space-x-1.5 shadow-sm"
+                  className="flex-1 lg:flex-none px-3.5 py-3 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 font-space font-bold text-xs border border-slate-200 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center space-x-1 shadow-sm"
                   title="Delete Group (Creator Only)"
                 >
-                  <Trash2 className="w-4 h-4 text-rose-600" />
-                  <span>Delete Group</span>
+                  <Trash2 className="w-4 h-4 text-rose-500" />
+                  <span>Delete</span>
                 </button>
               )}
 
@@ -780,6 +805,18 @@ export const GroupDetailsPage = () => {
           </div>
         )}
 
+        {/* TAB 7: VISUAL ANALYTICS & CHARTS */}
+        {activeTab === 'Analytics' && (
+          <VisualAnalyticsDashboard
+            group={group}
+            expenses={expenses}
+            settlements={settlements}
+            simplifiedTx={simplifiedTx}
+            analyticsData={analyticsData}
+            onSettleClick={(from, to, amt) => handleOpenSettleModal(from, to, amt)}
+          />
+        )}
+
       </div>
 
       <AddMemberModal
@@ -841,6 +878,7 @@ export const GroupDetailsPage = () => {
         isOpen={!!selectedMemberForStatement}
         onClose={() => setSelectedMemberForStatement(null)}
         member={selectedMemberForStatement}
+        group={group}
         allMembers={group.members}
         expenses={expenses}
         settlements={settlements}
