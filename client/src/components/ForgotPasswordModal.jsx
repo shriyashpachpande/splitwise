@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
-import { Mail, KeyRound, Lock, X, CheckCircle, ShieldCheck, ArrowRight, RefreshCw, KeyCheck } from 'lucide-react';
+import { Mail, KeyRound, Lock, X, CheckCircle, ShieldCheck, ArrowRight, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 export const ForgotPasswordModal = ({ isOpen, onClose, onSuccessEmail }) => {
   // Step 1: Send OTP to Email
@@ -247,7 +247,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose, onSuccessEmail }) => {
                 className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-space font-bold text-sm transition-all shadow-md shadow-indigo-600/20 disabled:opacity-50 flex items-center justify-center space-x-2 active:scale-95"
               >
                 <span>{loading ? 'Verifying OTP Code...' : 'Verify OTP'}</span>
-                <KeyCheck className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4" />
               </button>
             </form>
           )}
