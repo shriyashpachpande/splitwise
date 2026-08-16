@@ -2,12 +2,13 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-// Interceptor to attach JWT token to headers
+// Interceptor to attach JWT token to headers if present in localStorage
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('splitwise_token');

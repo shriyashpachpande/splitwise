@@ -4,6 +4,8 @@ const dotenv = require('dotenv');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
+const cookieParser = require('cookie-parser');
+const xssSanitizer = require('./middleware/xssSanitizerMiddleware');
 const connectDB = require('./config/db');
 
 dotenv.config();
@@ -45,26 +47,35 @@ app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/send-otp', authLimiter);
 
-// 5. CORS Middleware
-app.use(cors());
+// 5. Cookie Parser Middleware (HttpOnly Cookie Auth Support)
+app.use(cookieParser());
 
-// 6. Body Parser Middleware with size limits
+// 6. CORS Middleware
+app.use(cors({
+  credentials: true,
+  origin: true
+}));
+
+// 7. Body Parser Middleware with size limits
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// 7. API Routes
+// 8. Recursive XSS Input Sanitizer Middleware
+app.use(xssSanitizer);
+
+// 9. API Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/groups', require('./routes/groupRoutes'));
 app.use('/api', require('./routes/expenseRoutes'));
 app.use('/api', require('./routes/settlementRoutes'));
 app.use('/api', require('./routes/analyticsRoutes'));
 
-// 8. Health check endpoint
+// 10. Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Splitwise Financial Engine API is running securely' });
 });
 
-// 9. Centralized Error handling middleware
+// 11. Centralized Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled server error:', err);
   res.status(500).json({

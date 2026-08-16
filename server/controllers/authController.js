@@ -2,12 +2,35 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Otp = require('../models/Otp');
+const SecurityLog = require('../models/SecurityLog');
 const { generate6DigitOtp, sendRegisterOtpEmail } = require('../services/emailService');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret_key_12345', {
     expiresIn: '30d'
   });
+};
+
+// Send JWT Token response in both HttpOnly Cookie & JSON payload
+const sendTokenResponse = (user, statusCode, res) => {
+  const token = generateToken(user._id);
+
+  const cookieOptions = {
+    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  };
+
+  res.status(statusCode)
+    .cookie('token', token, cookieOptions)
+    .json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      token
+    });
 };
 
 // @desc    Send 6-Digit OTP to Email for Registration
@@ -90,7 +113,6 @@ const registerUser = async (req, res) => {
     let user;
 
     if (userExists) {
-      // If auto-created placeholder user from group invite, claim and upgrade password
       const isAutoUser = await bcrypt.compare('otpauthuser123', userExists.password) ||
                          await bcrypt.compare('guestpassword123', userExists.password);
       
@@ -118,20 +140,14 @@ const registerUser = async (req, res) => {
     // Clean up used OTP
     await Otp.deleteMany({ email: cleanEmail, inviteCode: 'REGISTER' });
 
-    res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-      token: generateToken(user._id)
-    });
+    sendTokenResponse(user, 201, res);
   } catch (error) {
     console.error('Register error:', error);
     res.status(500).json({ message: 'Server error during registration' });
   }
 };
 
-// @desc    Authenticate user & get token
+// @desc    Authenticate user & get token (With Account Lockout Security Policy)
 // @route   POST /api/auth/login
 const loginUser = async (req, res) => {
   try {
@@ -141,23 +157,87 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail }).select('+password');
     if (!user) {
+      // Security Log for invalid email login
+      await SecurityLog.create({
+        eventType: 'FAILED_LOGIN',
+        email: cleanEmail,
+        ipAddress: req.ip || req.headers['x-forwarded-for'] || 'Unknown',
+        userAgent: req.headers['user-agent'] || 'Unknown',
+        details: 'Login attempted with unregistered email address'
+      });
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    // 1. SECURITY LOCKOUT CHECK: Is the account locked due to too many failed attempts?
+    if (user.lockUntil && user.lockUntil > Date.now()) {
+      const remainingMs = user.lockUntil.getTime() - Date.now();
+      const remainingMins = Math.ceil(remainingMs / (60 * 1000));
+
+      await SecurityLog.create({
+        eventType: 'ACCOUNT_LOCKED',
+        email: cleanEmail,
+        userId: user._id,
+        ipAddress: req.ip || req.headers['x-forwarded-for'] || 'Unknown',
+        userAgent: req.headers['user-agent'] || 'Unknown',
+        details: `Blocked login attempt on locked account. Lock expires in ${remainingMins} mins`
+      });
+
+      return res.status(423).json({
+        message: `Account is temporarily locked due to 5 consecutive failed login attempts. Please try again in ${remainingMins} minute(s).`
+      });
+    }
+
+    // 2. PASSWORD CHECK
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      // Increment failed login counter
+      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+
+      // Lock account if failed attempts hit 5
+      if (user.failedLoginAttempts >= 5) {
+        user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // Lock for 15 minutes
+        await user.save();
+
+        await SecurityLog.create({
+          eventType: 'ACCOUNT_LOCKED',
+          email: cleanEmail,
+          userId: user._id,
+          ipAddress: req.ip || req.headers['x-forwarded-for'] || 'Unknown',
+          userAgent: req.headers['user-agent'] || 'Unknown',
+          details: 'Account locked for 15 minutes after 5 consecutive failed login attempts'
+        });
+
+        return res.status(423).json({
+          message: 'Account has been locked for 15 minutes due to 5 consecutive failed login attempts.'
+        });
+      }
+
+      await user.save();
+
+      await SecurityLog.create({
+        eventType: 'FAILED_LOGIN',
+        email: cleanEmail,
+        userId: user._id,
+        ipAddress: req.ip || req.headers['x-forwarded-for'] || 'Unknown',
+        userAgent: req.headers['user-agent'] || 'Unknown',
+        details: `Incorrect password attempt ${user.failedLoginAttempts}/5`
+      });
+
+      const attemptsRemaining = 5 - user.failedLoginAttempts;
+      return res.status(401).json({
+        message: `Invalid password. ${attemptsRemaining} attempt(s) remaining before account lockout.`
+      });
     }
 
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-      token: generateToken(user._id)
-    });
+    // 3. SUCCESSFUL LOGIN: Reset lockout counters
+    user.failedLoginAttempts = 0;
+    user.lockUntil = undefined;
+    await user.save();
+
+    sendTokenResponse(user, 200, res);
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error during login' });
@@ -196,14 +276,7 @@ const updateUserProfile = async (req, res) => {
     }
 
     const updatedUser = await user.save();
-
-    res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      avatar: updatedUser.avatar,
-      token: generateToken(updatedUser._id)
-    });
+    sendTokenResponse(updatedUser, 200, res);
   } catch (error) {
     res.status(500).json({ message: 'Server error updating profile' });
   }
