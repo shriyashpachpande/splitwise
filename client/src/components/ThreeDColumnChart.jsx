@@ -5,8 +5,8 @@ import { Award, TrendingUp, Sparkles } from 'lucide-react';
 
 /**
  * 3D Isometric / Gradient Column Infographic Bar Chart
- * Styled inspired by modern 3D infographic illustrations (Red, Pink, Orange, Blue, Purple 3D blocks)
- * Includes scroll-triggered fill animations (0% -> target height%)
+ * Styled inspired by modern 3D infographic illustrations
+ * Re-animates fill (0% -> target%) EVERY TIME user scrolls into view (once: false)
  */
 export const ThreeDColumnChart = ({ members = [], currency = 'INR', totalSpending = 0 }) => {
   if (!members || members.length === 0) return null;
@@ -77,7 +77,7 @@ export const ThreeDColumnChart = ({ members = [], currency = 'INR', totalSpendin
     <motion.div
       initial={{ opacity: 0, y: 25 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
+      viewport={{ once: false, amount: 0.15 }}
       transition={{ duration: 0.6 }}
       className="finlance-card p-5 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-md space-y-6 overflow-hidden"
     >
@@ -133,7 +133,7 @@ export const ThreeDColumnChart = ({ members = [], currency = 'INR', totalSpendin
                 <motion.div
                   initial={{ opacity: 0, y: 15, scale: 0.8 }}
                   whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  viewport={{ once: true, amount: 0.15 }}
+                  viewport={{ once: false, amount: 0.15 }}
                   transition={{ duration: 0.5, delay: 0.15 * idx + 0.3 }}
                   className="mb-3 text-center transition-transform group-hover:-translate-y-1 z-20"
                 >
@@ -148,23 +148,23 @@ export const ThreeDColumnChart = ({ members = [], currency = 'INR', totalSpendin
                   )}
                 </motion.div>
 
-                {/* 3D Column Bar - Scroll Animated Fill */}
+                {/* 3D Column Bar - Re-animates fill every time on scroll */}
                 <div className="w-full relative flex flex-col justify-end" style={{ height: `${heightPct * 2.2}px` }}>
                   
                   {/* Top 3D Cap */}
                   <motion.div
                     initial={{ scale: 0 }}
                     whileInView={{ scale: 1 }}
-                    viewport={{ once: true, amount: 0.15 }}
+                    viewport={{ once: false, amount: 0.15 }}
                     transition={{ duration: 0.4, delay: 0.12 * idx }}
                     className={`w-full h-3.5 rounded-t-lg ${palette.top} shadow-sm border-t border-white/60`}
                   />
 
-                  {/* Main Front Face - Fills from Height 0% to Target % on Scroll */}
+                  {/* Main Front Face - Fills from Height 0% to Target % EVERY TIME user scrolls into view */}
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     whileInView={{ height: '100%', opacity: 1 }}
-                    viewport={{ once: true, amount: 0.15 }}
+                    viewport={{ once: false, amount: 0.15 }}
                     transition={{ duration: 0.8, delay: 0.12 * idx, ease: [0.16, 1, 0.3, 1] }}
                     className={`w-full ${palette.front} ${palette.glow} rounded-b-lg border-x border-b border-white/30 relative overflow-hidden group-hover:brightness-105 transition-all`}
                   >
@@ -177,7 +177,7 @@ export const ThreeDColumnChart = ({ members = [], currency = 'INR', totalSpendin
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.15 }}
+                  viewport={{ once: false, amount: 0.15 }}
                   transition={{ duration: 0.4, delay: 0.15 * idx + 0.2 }}
                   className="mt-4 text-center space-y-1 z-10"
                 >

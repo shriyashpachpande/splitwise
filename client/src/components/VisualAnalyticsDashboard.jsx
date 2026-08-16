@@ -176,12 +176,12 @@ export const VisualAnalyticsDashboard = ({
         />
       )}
 
-      {/* 2. CHART SECTION 1: MEMBER SPENDING BREAKDOWN (Scroll Fill Animated Bars) */}
+      {/* 2. CHART SECTION 1: MEMBER SPENDING BREAKDOWN (Repeat Scroll Fill Animated Bars) */}
       {(activeSubTab === 'ALL' || activeSubTab === 'PAYMENTS') && (
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.15 }}
+          viewport={{ once: false, amount: 0.15 }}
           transition={{ duration: 0.6 }}
           className="finlance-card p-6 rounded-3xl border border-slate-200 bg-white space-y-5 shadow-sm"
         >
@@ -218,7 +218,7 @@ export const VisualAnalyticsDashboard = ({
                   key={m._id || index}
                   initial={{ opacity: 0, x: -15 }}
                   whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true, amount: 0.15 }}
+                  viewport={{ once: false, amount: 0.15 }}
                   transition={{ duration: 0.5, delay: index * 0.08 }}
                   className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-2.5 hover:border-violet-300 hover:bg-white transition-all"
                 >
@@ -251,12 +251,12 @@ export const VisualAnalyticsDashboard = ({
                     </div>
                   </div>
 
-                  {/* Animated Visual Bar Track (Fill from 0% -> target % on Scroll) */}
+                  {/* Animated Visual Bar Track (Fill from 0% -> target % EVERY TIME on Scroll) */}
                   <div className="relative w-full h-3.5 bg-slate-200/80 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       whileInView={{ width: `${barPercentage}%` }}
-                      viewport={{ once: true, amount: 0.15 }}
+                      viewport={{ once: false, amount: 0.15 }}
                       transition={{ duration: 0.8, delay: index * 0.1, ease: 'easeOut' }}
                       className={`h-full rounded-full bg-gradient-to-r ${
                         index === 0
@@ -277,7 +277,7 @@ export const VisualAnalyticsDashboard = ({
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.15 }}
+          viewport={{ once: false, amount: 0.15 }}
           transition={{ duration: 0.6 }}
           className="finlance-card p-6 rounded-3xl border border-slate-200 bg-white space-y-5 shadow-sm"
         >
@@ -323,7 +323,7 @@ export const VisualAnalyticsDashboard = ({
                     key={idx}
                     initial={{ opacity: 0, scale: 0.96 }}
                     whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true, amount: 0.15 }}
+                    viewport={{ once: false, amount: 0.15 }}
                     transition={{ duration: 0.4, delay: idx * 0.05 }}
                     className="p-5 rounded-3xl bg-slate-50/90 border border-slate-200/90 hover:border-violet-300 hover:bg-white transition-all space-y-4 shadow-xs"
                   >
@@ -390,11 +390,11 @@ export const VisualAnalyticsDashboard = ({
       {/* 4. CHART SECTION 3: CATEGORY & NET POSITIONS GRAPH */}
       {(activeSubTab === 'ALL' || activeSubTab === 'CATEGORIES') && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Category Donut & List Chart (FIXED & SCROLL ANIMATED SVG DONUT) */}
+          {/* Category Donut & List Chart (Re-animates SVG Donut every time on scroll) */}
           <motion.div
             initial={{ opacity: 0, x: -25 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
+            viewport={{ once: false, amount: 0.15 }}
             transition={{ duration: 0.6 }}
             className="finlance-card p-6 rounded-3xl border border-slate-200 bg-white space-y-4 shadow-sm"
           >
@@ -442,7 +442,7 @@ export const VisualAnalyticsDashboard = ({
                           strokeDashoffset={-slice.startOffset}
                           initial={{ strokeDasharray: `0 ${circumference}` }}
                           whileInView={{ strokeDasharray: `${slice.dashLen} ${circumference}` }}
-                          viewport={{ once: true, amount: 0.15 }}
+                          viewport={{ once: false, amount: 0.15 }}
                           transition={{ duration: 1, delay: i * 0.12, ease: 'easeOut' }}
                           className="hover:stroke-[12] transition-all cursor-pointer"
                         />
@@ -466,7 +466,7 @@ export const VisualAnalyticsDashboard = ({
                       key={slice.catName || i}
                       initial={{ opacity: 0, y: 8 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, amount: 0.15 }}
+                      viewport={{ once: false, amount: 0.15 }}
                       transition={{ duration: 0.4, delay: i * 0.05 }}
                       className="flex items-center justify-between text-xs font-space p-2 rounded-xl hover:bg-slate-50 transition-colors"
                     >
@@ -489,7 +489,7 @@ export const VisualAnalyticsDashboard = ({
           <motion.div
             initial={{ opacity: 0, x: 25 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
+            viewport={{ once: false, amount: 0.15 }}
             transition={{ duration: 0.6 }}
             className="finlance-card p-6 rounded-3xl border border-slate-200 bg-white space-y-4 shadow-sm"
           >
@@ -522,9 +522,7 @@ export const VisualAnalyticsDashboard = ({
                         <span className={`text-[10px] font-space font-semibold px-2 py-0.5 rounded-full ${
                           isPos
                             ? 'bg-emerald-100 text-emerald-800'
-                            : isNeg
-                            ? 'bg-rose-100 text-rose-800'
-                            : 'bg-slate-200 text-slate-700'
+                            : 'bg-rose-100 text-rose-800'
                         }`}>
                           {isPos ? 'Receivable' : isNeg ? 'Liability' : 'Settled'}
                         </span>

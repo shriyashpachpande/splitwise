@@ -4,8 +4,8 @@ import { formatCurrency } from '../utils/currencyFormatter';
 import { Target } from 'lucide-react';
 
 /**
- * 3D Radial Gauge Ring Charts (inspired by modern 3D illustration infographics)
- * Features scroll-triggered ring fill animation (whileInView)
+ * 3D Radial Gauge Ring Charts
+ * Re-animates gauge fill (0% -> target%) EVERY TIME user scrolls into view (once: false)
  */
 export const ThreeDGaugeRings = ({ analyticsData, totalSpending = 0, currency = 'INR' }) => {
   const categoryBreakdown = analyticsData?.categoryBreakdown || {};
@@ -47,7 +47,7 @@ export const ThreeDGaugeRings = ({ analyticsData, totalSpending = 0, currency = 
     <motion.div
       initial={{ opacity: 0, y: 25 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
+      viewport={{ once: false, amount: 0.15 }}
       transition={{ duration: 0.6 }}
       className="finlance-card p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-md space-y-6"
     >
@@ -79,7 +79,7 @@ export const ThreeDGaugeRings = ({ analyticsData, totalSpending = 0, currency = 
               key={catName}
               initial={{ scale: 0.9, opacity: 0 }}
               whileInView={{ scale: 1, opacity: 1 }}
-              viewport={{ once: true, amount: 0.15 }}
+              viewport={{ once: false, amount: 0.15 }}
               transition={{ duration: 0.4, delay: idx * 0.1 }}
               className={`p-4 sm:p-5 rounded-3xl bg-gradient-to-b ${style.bgGradient} border border-slate-200/90 text-center space-y-3 relative group hover:shadow-lg transition-all`}
             >
@@ -97,7 +97,7 @@ export const ThreeDGaugeRings = ({ analyticsData, totalSpending = 0, currency = 
                     fill="none"
                   />
 
-                  {/* 3D Main Animated Stroke Ring (Fill on Scroll) */}
+                  {/* 3D Main Animated Stroke Ring (Fill on Every Scroll) */}
                   <motion.circle
                     cx="50"
                     cy="50"
@@ -109,7 +109,7 @@ export const ThreeDGaugeRings = ({ analyticsData, totalSpending = 0, currency = 
                     style={{ filter: style.glow }}
                     initial={{ strokeDashoffset: circumference }}
                     whileInView={{ strokeDashoffset }}
-                    viewport={{ once: true, amount: 0.15 }}
+                    viewport={{ once: false, amount: 0.15 }}
                     transition={{ duration: 1.2, delay: idx * 0.15, ease: 'easeOut' }}
                     strokeDasharray={circumference}
                   />

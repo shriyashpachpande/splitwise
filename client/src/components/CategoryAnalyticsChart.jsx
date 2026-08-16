@@ -43,7 +43,7 @@ export const CategoryAnalyticsChart = ({ analyticsData, currency = 'INR' }) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.15 }}
+        viewport={{ once: false, amount: 0.15 }}
         transition={{ duration: 0.5 }}
         className="saas-card p-6 rounded-3xl border border-slate-200 bg-white space-y-4 shadow-sm"
       >
@@ -83,12 +83,12 @@ export const CategoryAnalyticsChart = ({ analyticsData, currency = 'INR' }) => {
                     </div>
                   </div>
 
-                  {/* Clean Indigo Progress Bar with Scroll Fill Animation */}
+                  {/* Clean Indigo Progress Bar with Repeat Scroll Fill Animation */}
                   <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       whileInView={{ width: `${pct}%` }}
-                      viewport={{ once: true, amount: 0.15 }}
+                      viewport={{ once: false, amount: 0.15 }}
                       transition={{ duration: 0.8, delay: index * 0.1, ease: 'easeOut' }}
                       className="h-full bg-gradient-to-r from-indigo-500 to-violet-600 rounded-full"
                     />
