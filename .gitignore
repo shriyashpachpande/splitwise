@@ -21,3 +21,4 @@ build/
 # Temp & Artifacts
 .gemini/
 .tempmediaStorage/
+*.zip

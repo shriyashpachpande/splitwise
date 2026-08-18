@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { AppShell } from '../components/AppShell';
@@ -7,6 +8,7 @@ import { GroupCard } from '../components/GroupCard';
 import { CreateGroupModal } from '../components/CreateGroupModal';
 import { SkeletonGroupCard } from '../components/SkeletonLoader';
 import { formatCurrency } from '../utils/currencyFormatter';
+import { AnimatedCounter } from '../components/AnimatedCounter';
 import {
   FolderKanban,
   TrendingUp,
@@ -85,15 +87,100 @@ export const DashboardPage = () => {
     return 'Good evening';
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.14,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const headerVariants = {
+    hidden: { opacity: 0, y: -30, scale: 0.98 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.7,
+        ease: [0.16, 1, 0.3, 1]
+      }
+    }
+  };
+
+  const heroCardVariants = {
+    hidden: { opacity: 0, y: 40, scale: 0.94 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.8,
+        ease: [0.16, 1, 0.3, 1]
+      }
+    }
+  };
+
+  const metricsGridVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.05
+      }
+    }
+  };
+
+  const metricCardVariants = {
+    hidden: { opacity: 0, y: 35, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.65,
+        ease: [0.16, 1, 0.3, 1]
+      }
+    }
+  };
+
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 35 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.7,
+        ease: [0.16, 1, 0.3, 1]
+      }
+    }
+  };
+
   return (
     <AppShell
       title="Dashboard"
       onOpenCreateGroup={() => setIsCreateModalOpen(true)}
     >
-      <div className="space-y-8">
+      <motion.div
+        className="space-y-8"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, amount: 0.05 }}
+      >
         
         {/* Top Header Greeting */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <motion.div
+          variants={headerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, amount: 0.2 }}
+          className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        >
           <div>
             <h1 className="font-space text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
               {getGreeting()}, {user?.name?.split(' ')[0] || 'there'} 👋
@@ -110,10 +197,18 @@ export const DashboardPage = () => {
             <PlusCircle className="w-4 h-4 stroke-[2.5]" />
             <span>Create New Group</span>
           </button>
-        </div>
+        </motion.div>
 
         {/* Hero Net Position Balance Card */}
-        <div className="finlance-hero-card p-8 text-white relative overflow-hidden">
+        <motion.div
+          variants={heroCardVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, amount: 0.2 }}
+          whileHover={{ y: -4, scale: 1.005 }}
+          transition={{ duration: 0.3 }}
+          className="finlance-hero-card p-8 text-white relative overflow-hidden"
+        >
           <div className="absolute right-[-40px] top-[-40px] w-96 h-96 bg-gradient-to-br from-purple-400/20 to-indigo-300/10 blur-[100px] rounded-full pointer-events-none" />
           <div className="absolute left-[-20px] bottom-[-20px] w-72 h-72 bg-gradient-to-tr from-pink-500/15 to-violet-400/10 blur-[90px] rounded-full pointer-events-none" />
 
@@ -136,37 +231,60 @@ export const DashboardPage = () => {
 
             <div>
               <p className="font-space text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white drop-shadow-sm">
-                {netOverallBalance >= 0 ? `+${formatCurrency(netOverallBalance)}` : formatCurrency(netOverallBalance)}
+                <AnimatedCounter value={netOverallBalance} showPlusSign={netOverallBalance >= 0} duration={1400} />
               </p>
               
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <span className="finlance-badge-glass px-3.5 py-1.5 text-xs font-medium flex items-center space-x-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span>
+                    <AnimatedCounter
+                      value={netOverallBalance >= 0 ? netOverallBalance : Math.abs(netOverallBalance)}
+                      showPlusSign={netOverallBalance >= 0}
+                      duration={1400}
+                    />
                     {netOverallBalance >= 0
-                      ? `+${formatCurrency(netOverallBalance)} overall owed across all groups`
-                      : `${formatCurrency(Math.abs(netOverallBalance))} overall owe across all groups`}
+                      ? ' overall owed across all groups'
+                      : ' overall owe across all groups'}
                   </span>
                 </span>
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* 4 Metric Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <div className="finlance-card p-5 rounded-3xl space-y-3 bg-white">
+          {/* Card 1: Leftmost */}
+          <motion.div
+            initial={{ opacity: 0, x: -60, scale: 0.94 }}
+            whileInView={{ opacity: 1, x: 0, scale: 1 }}
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ y: -4, scale: 1.02 }}
+            className="finlance-card p-5 rounded-3xl space-y-3 bg-white"
+          >
             <div className="flex items-center justify-between text-slate-400">
               <span className="text-[11px] font-space font-bold uppercase tracking-wider text-slate-500">Total Groups</span>
               <div className="w-9 h-9 rounded-2xl bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-600 shadow-sm">
                 <FolderKanban className="w-4.5 h-4.5" />
               </div>
             </div>
-            <p className="font-space text-2xl lg:text-3xl font-extrabold text-slate-900">{totalGroups}</p>
+            <p className="font-space text-2xl lg:text-3xl font-extrabold text-slate-900">
+              <AnimatedCounter value={totalGroups} isCurrency={false} duration={1000} />
+            </p>
             <p className="text-xs text-slate-400 font-medium">{activeGroups} active now</p>
-          </div>
+          </motion.div>
 
-          <div className="finlance-card p-5 rounded-3xl space-y-3 bg-white">
+          {/* Card 2: Left-center */}
+          <motion.div
+            initial={{ opacity: 0, x: -40, scale: 0.94 }}
+            whileInView={{ opacity: 1, x: 0, scale: 1 }}
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.65, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ y: -4, scale: 1.02 }}
+            className="finlance-card p-5 rounded-3xl space-y-3 bg-white"
+          >
             <div className="flex items-center justify-between text-slate-400">
               <span className="text-[11px] font-space font-bold uppercase tracking-wider text-slate-500">Total Spending</span>
               <div className="w-9 h-9 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
@@ -174,12 +292,20 @@ export const DashboardPage = () => {
               </div>
             </div>
             <p className="font-space text-2xl lg:text-3xl font-extrabold text-slate-900">
-              {formatCurrency(totalSpent)}
+              <AnimatedCounter value={totalSpent} duration={1200} />
             </p>
             <p className="text-xs text-slate-400 font-medium">Across all trips</p>
-          </div>
+          </motion.div>
 
-          <div className="finlance-card p-5 rounded-3xl space-y-3 bg-white">
+          {/* Card 3: Right-center */}
+          <motion.div
+            initial={{ opacity: 0, x: 40, scale: 0.94 }}
+            whileInView={{ opacity: 1, x: 0, scale: 1 }}
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.65, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ y: -4, scale: 1.02 }}
+            className="finlance-card p-5 rounded-3xl space-y-3 bg-white"
+          >
             <div className="flex items-center justify-between text-rose-500">
               <span className="text-[11px] font-space font-bold uppercase tracking-wider text-slate-500">You Owe</span>
               <div className="w-9 h-9 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shadow-sm">
@@ -187,12 +313,20 @@ export const DashboardPage = () => {
               </div>
             </div>
             <p className="font-space text-2xl lg:text-3xl font-extrabold text-rose-600">
-              {formatCurrency(totalYouOwe)}
+              <AnimatedCounter value={totalYouOwe} duration={1200} />
             </p>
             <p className="text-xs text-rose-500/80 font-medium">Pending settlements</p>
-          </div>
+          </motion.div>
 
-          <div className="finlance-card p-5 rounded-3xl space-y-3 bg-white">
+          {/* Card 4: Rightmost */}
+          <motion.div
+            initial={{ opacity: 0, x: 60, scale: 0.94 }}
+            whileInView={{ opacity: 1, x: 0, scale: 1 }}
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.65, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ y: -4, scale: 1.02 }}
+            className="finlance-card p-5 rounded-3xl space-y-3 bg-white"
+          >
             <div className="flex items-center justify-between text-emerald-600">
               <span className="text-[11px] font-space font-bold uppercase tracking-wider text-slate-500">You Get Back</span>
               <div className="w-9 h-9 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
@@ -200,14 +334,20 @@ export const DashboardPage = () => {
               </div>
             </div>
             <p className="font-space text-2xl lg:text-3xl font-extrabold text-emerald-600">
-              {formatCurrency(totalOthersOweYou)}
+              <AnimatedCounter value={totalOthersOweYou} duration={1200} />
             </p>
             <p className="text-xs text-emerald-600/80 font-medium">To be collected</p>
-          </div>
+          </motion.div>
         </div>
 
         {/* Main 2-Column Section: Groups (2/3) + Recent Activity Widget (1/3) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <motion.div
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, amount: 0.15 }}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+        >
           
           {/* Left Column (2/3): Groups List */}
           <div className="lg:col-span-2 space-y-6">
@@ -268,11 +408,28 @@ export const DashboardPage = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {filteredGroups.map(group => (
-                  <GroupCard key={group._id} group={group} />
+              <motion.div
+                className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: false, amount: 0.15 }}
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: { opacity: 1, transition: { staggerChildren: 0.12 } }
+                }}
+              >
+                {filteredGroups.map((group, idx) => (
+                  <motion.div
+                    key={group._id}
+                    variants={{
+                      hidden: { opacity: 0, y: 30, scale: 0.95 },
+                      visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } }
+                    }}
+                  >
+                    <GroupCard group={group} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
           </div>
 
@@ -295,8 +452,12 @@ export const DashboardPage = () => {
                   <p className="text-xs text-slate-400 text-center py-6 font-medium">No recent transactions recorded.</p>
                 ) : (
                   activities.map((act, idx) => (
-                    <div
+                    <motion.div
                       key={act._id || idx}
+                      initial={{ opacity: 0, x: 25, scale: 0.95 }}
+                      whileInView={{ opacity: 1, x: 0, scale: 1 }}
+                      viewport={{ once: false, amount: 0.2 }}
+                      transition={{ delay: idx * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                       className="p-3 rounded-2xl bg-slate-50/80 border border-slate-100 space-y-1 hover:bg-slate-100/70 transition-colors"
                     >
                       <div className="flex items-center justify-between">
@@ -310,16 +471,16 @@ export const DashboardPage = () => {
                       <p className="font-space text-xs font-semibold text-slate-900 line-clamp-2">
                         {act.description}
                       </p>
-                    </div>
+                    </motion.div>
                   ))
                 )}
               </div>
             </div>
           </div>
 
-        </div>
+        </motion.div>
 
-      </div>
+      </motion.div>
 
       <CreateGroupModal
         isOpen={isCreateModalOpen}
