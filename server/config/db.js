@@ -7,7 +7,7 @@ const connectDB = async () => {
   try {
     const connStr = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/splitwise';
     console.log(`Connecting to MongoDB at: ${connStr}...`);
-    
+
     // Set connection timeout short so we can fall back to memory server if local Mongo is not running
     await mongoose.connect(connStr, {
       serverSelectionTimeoutMS: 2000
