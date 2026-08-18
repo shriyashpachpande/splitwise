@@ -1,0 +1,10 @@
+{
+  "appId": "com.spliteasy.app",
+  "appName": "SplitEasy",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://splitwise-lilac.vercel.app",
+    "cleartext": true
+  }
+}

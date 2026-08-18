@@ -28,6 +28,13 @@ html {
 }
 
 @layer base {
+  html, body, #root {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+    touch-action: pan-y;
+  }
+
   body {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Inter", "Plus Jakarta Sans", system-ui, sans-serif;
     background-color: #f8fafc;

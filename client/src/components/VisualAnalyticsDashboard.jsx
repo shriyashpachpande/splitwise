@@ -93,7 +93,7 @@ export const VisualAnalyticsDashboard = ({
           </div>
 
           {/* Quick Sub-Tab Filter Pills */}
-          <div className="flex flex-wrap items-center gap-1 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/90 text-xs font-space font-bold">
+          <div className="flex flex-nowrap sm:flex-wrap items-center gap-1 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/90 text-xs font-space font-bold max-w-full overflow-x-auto no-scrollbar shrink-0">
             {[
               { id: 'ALL', label: 'Overview', icon: Layers },
               { id: 'PAYMENTS', label: 'Member Payments', icon: Wallet },

@@ -12,7 +12,7 @@ export const BottomNav = ({ onOpenAddExpense }) => {
   };
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-slate-200 px-4 py-2 flex justify-around items-center shadow-lg">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-slate-200 px-4 py-2 flex justify-around items-center shadow-lg pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]">
       <Link
         to="/dashboard"
         className={`flex flex-col items-center py-1 px-3 rounded-xl transition-all ${

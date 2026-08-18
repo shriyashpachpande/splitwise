@@ -1,19 +1,36 @@
 {
-  "short_name": "EquallySplit",
-  "name": "Equally Split - Smart Expense Splitter",
+  "short_name": "SplitEasy",
+  "name": "SplitEasy",
   "icons": [
     {
-      "src": "/favicon.svg",
-      "type": "image/svg+xml",
-      "sizes": "512x512 192x192 64x64 32x32",
-      "purpose": "any maskable"
+      "src": "/app-logo.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/app-logo.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/app-logo.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/app-logo.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
   "start_url": "/",
-  "background_color": "#ffffff",
+  "background_color": "#0f172a",
   "theme_color": "#6366f1",
   "display": "standalone",
   "orientation": "portrait",
-  "scope": "/",
-  "description": "Smart bill splitting, visual financial analytics, and executive PDF & Excel report exports."
+  "scope": "/"
 }
