@@ -14,6 +14,7 @@ import { SettlementBreakdownDrawer } from '../components/SettlementBreakdownDraw
 import { MemberStatementDrawer } from '../components/MemberStatementDrawer';
 import { InviteMemberModal } from '../components/InviteMemberModal';
 import { VisualAnalyticsDashboard } from '../components/VisualAnalyticsDashboard';
+import TripPlanner from '../components/TripPlanner';
 import { formatCurrency, formatSignedBalance } from '../utils/currencyFormatter';
 import { exportGroupPdf } from '../utils/pdfExport';
 import { exportGroupExcel } from '../utils/excelExport';
@@ -41,7 +42,8 @@ import {
   Trash2,
   FileText,
   FileSpreadsheet,
-  BarChart3
+  BarChart3,
+  Compass
 } from 'lucide-react';
 
 export const GroupDetailsPage = () => {
@@ -181,6 +183,7 @@ export const GroupDetailsPage = () => {
 
   const navTabs = [
     { id: 'Overview', label: 'Overview', icon: PieChartIcon },
+    { id: 'Itinerary', label: '🗺️ Trip Plan', icon: Compass },
     { id: 'Expenses', label: `Expenses (${expenses.length})`, icon: Receipt },
     { id: 'Balances', label: 'Balances', icon: Scale },
     { id: 'Members', label: `Members (${group.members.length})`, icon: Users },
@@ -488,6 +491,11 @@ export const GroupDetailsPage = () => {
               />
             </div>
           </div>
+        )}
+
+        {/* TAB: TRIP PLANNER */}
+        {activeTab === 'Itinerary' && (
+          <TripPlanner groupId={groupId} currentUser={currentUser} />
         )}
 
         {/* TAB 2: EXPENSES LIST */}

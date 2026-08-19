@@ -66,18 +66,19 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // 8. Recursive XSS Input Sanitizer Middleware
 app.use(xssSanitizer);
 
-// 9. API Routes
+// 9. Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Splitwise Financial Engine API is running securely' });
+});
+
+// 10. API Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api', require('./routes/itineraryRoutes'));
 app.use('/api/groups', require('./routes/groupRoutes'));
 app.use('/api', require('./routes/expenseRoutes'));
 app.use('/api', require('./routes/settlementRoutes'));
 app.use('/api', require('./routes/analyticsRoutes'));
 app.use('/api', require('./routes/notificationRoutes'));
-
-// 10. Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Splitwise Financial Engine API is running securely' });
-});
 
 // 11. Centralized Error handling middleware
 app.use((err, req, res, next) => {

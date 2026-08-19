@@ -10,18 +10,21 @@ export const AppShell = ({
   onOpenCreateGroup
 }) => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row text-slate-900 font-sans antialiased">
-      {/* Sidebar Component (Desktop + Mobile Drawer) */}
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased">
+      {/* Sidebar Component (Desktop Fixed + Mobile Drawer) */}
       <Sidebar
         onOpenCreateGroup={onOpenCreateGroup}
         mobileOpen={mobileSidebarOpen}
         onCloseMobile={() => setMobileSidebarOpen(false)}
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Main Content Area (Offset by fixed sidebar on desktop) */}
+      <div className={`flex flex-col min-w-0 transition-all duration-300 ${collapsed ? 'md:pl-20' : 'md:pl-64'}`}>
         <TopBar
           title={title}
           onOpenAddExpense={onOpenAddExpense}

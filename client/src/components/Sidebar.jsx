@@ -15,8 +15,11 @@ import {
   X
 } from 'lucide-react';
 
-export const Sidebar = ({ onOpenCreateGroup, mobileOpen, onCloseMobile }) => {
-  const [collapsed, setCollapsed] = useState(false);
+export const Sidebar = ({ onOpenCreateGroup, mobileOpen, onCloseMobile, collapsed: externalCollapsed, setCollapsed: externalSetCollapsed }) => {
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const collapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
+  const setCollapsed = externalSetCollapsed || setInternalCollapsed;
+
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -37,9 +40,9 @@ export const Sidebar = ({ onOpenCreateGroup, mobileOpen, onCloseMobile }) => {
 
   return (
     <>
-      {/* 1. Desktop Sidebar */}
+      {/* 1. Desktop Sidebar (Fixed Position to Viewport) */}
       <aside
-        className={`hidden md:flex flex-col justify-between bg-white/95 backdrop-blur-md border-r border-slate-200/80 h-screen sticky top-0 z-30 transition-all duration-300 shadow-[4px_0_24px_rgba(15,23,42,0.02)] ${
+        className={`hidden md:flex flex-col justify-between bg-white/95 backdrop-blur-md border-r border-slate-200/80 h-screen fixed top-0 left-0 z-30 transition-all duration-300 shadow-[4px_0_24px_rgba(15,23,42,0.02)] ${
           collapsed ? 'w-20' : 'w-64'
         }`}
       >
